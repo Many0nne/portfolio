@@ -91,7 +91,7 @@ export function Minesweeper({ windowId }: MinesweeperProps) {
   const [mode, setMode] = useState<Mode>('beginner')
   const [board, setBoard] = useState<CellState[][] | null>(null)
   const [status, setStatus] = useState<GameStatus>('idle')
-  const [flagsLeft, setFlagsLeft] = useState(MODES.beginner.mines)
+  const [flagsLeft, setFlagsLeft] = useState<number>(MODES.beginner.mines)
   const [seconds, setSeconds] = useState(0)
 
   const { rows, cols, mines } = MODES[mode]

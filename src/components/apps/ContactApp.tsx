@@ -41,12 +41,26 @@ export function ContactApp() {
   const [input, setInput] = useState('')
   const [history, setHistory] = useState<string[]>([])
   const [historyIndex, setHistoryIndex] = useState(-1)
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const outputRef = useRef<HTMLDivElement>(null)
+  const shouldAutoScrollRef = useRef(true)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  const isNearBottom = useCallback((el: HTMLDivElement) => {
+    const threshold = 4
+    return Math.abs(el.scrollHeight - el.clientHeight - el.scrollTop) <= threshold
+  }, [])
+
   useEffect(() => {
-    bottomRef.current?.scrollIntoView()
+    const output = outputRef.current
+    if (!output || !shouldAutoScrollRef.current) return
+    output.scrollTop = output.scrollHeight
   }, [lines])
+
+  const handleOutputScroll = useCallback(() => {
+    const output = outputRef.current
+    if (!output) return
+    shouldAutoScrollRef.current = isNearBottom(output)
+  }, [isNearBottom])
 
   useEffect(() => {
     inputRef.current?.focus()
@@ -108,8 +122,23 @@ export function ContactApp() {
   )
 
   return (
-    <div className={styles.terminal} onClick={() => inputRef.current?.focus()}>
-      <div className={styles.output} aria-live="polite">
+    <div
+      className={styles.terminal}
+      onClick={(e) => {
+        const target = e.target as HTMLElement
+        const selection = window.getSelection()
+        const hasTextSelection = Boolean(selection && !selection.isCollapsed)
+        // Focus input on any click in the terminal, except while a text selection is active in output.
+        if (target.closest(`.${styles.output}`) && hasTextSelection) return
+        inputRef.current?.focus()
+      }}
+    >
+      <div
+        ref={outputRef}
+        className={styles.output}
+        aria-live="polite"
+        onScroll={handleOutputScroll}
+      >
         {lines.map((line, i) => (
           <div key={i} className={`${styles.line} ${styles[line.type]}`}>
             {line.text || '\u00A0'}
@@ -129,7 +158,6 @@ export function ContactApp() {
           aria-label="Commande terminal"
         />
       </form>
-      <div ref={bottomRef} />
     </div>
   )
 }

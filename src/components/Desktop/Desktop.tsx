@@ -100,7 +100,8 @@ export function Desktop() {
   // Live pixel position during drag for visual feedback
   const [draggingPixel, setDraggingPixel] = useState<{ id: string; x: number; y: number } | null>(null)
   const lastClick = useRef<{ id: string; time: number } | null>(null)
-  const dragStart = useRef<{ mx: number; my: number; ix: number; iy: number; iconId: string } | null>(null)
+  const dragStart = useRef<{ mx: number; my: number; ix: number; iy: number; iconId: string; pointerId: number } | null>(null)
+  const lastPointer = useRef<{ x: number; y: number } | null>(null)
 
   // Play startup sound once
   useEffect(() => {
@@ -123,36 +124,55 @@ export function Desktop() {
     return def
   }
 
-  const handleIconMouseDown = useCallback(
-    (e: React.MouseEvent, icon: DesktopIconDef) => {
+  const handleIconPointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>, icon: DesktopIconDef) => {
+      e.preventDefault()
       e.stopPropagation()
       setSelectedIcon(icon.id)
+
+      const sourceEl = e.currentTarget
+
+      try {
+        sourceEl.setPointerCapture(e.pointerId)
+      } catch {
+        // No-op: some browsers can throw if capture cannot be set.
+      }
 
       const gridPos = iconPositions[icon.id] && typeof iconPositions[icon.id].col === 'number'
         ? iconPositions[icon.id]
         : icon.defaultPos
       const pixel = gridToPixel(gridPos.col, gridPos.row)
 
-      dragStart.current = { mx: e.clientX, my: e.clientY, ix: pixel.x, iy: pixel.y, iconId: icon.id }
+      dragStart.current = { mx: e.clientX, my: e.clientY, ix: pixel.x, iy: pixel.y, iconId: icon.id, pointerId: e.pointerId }
+      lastPointer.current = { x: e.clientX, y: e.clientY }
 
-      const onMove = (me: MouseEvent) => {
-        if (!dragStart.current) return
-        const dx = me.clientX - dragStart.current.mx
-        const dy = me.clientY - dragStart.current.my
-        if (Math.abs(dx) < 4 && Math.abs(dy) < 4) return
-        setDraggingPixel({
-          id: icon.id,
-          x: Math.max(0, dragStart.current.ix + dx),
-          y: Math.max(0, dragStart.current.iy + dy),
-        })
+      const cleanupDragListeners = () => {
+        window.removeEventListener('pointermove', onMove)
+        window.removeEventListener('pointerup', onUp)
+        window.removeEventListener('pointercancel', onCancel)
+        window.removeEventListener('blur', onWindowBlur)
+
+        if (sourceEl.hasPointerCapture(e.pointerId)) {
+          try {
+            sourceEl.releasePointerCapture(e.pointerId)
+          } catch {
+            // No-op when capture is already released.
+          }
+        }
       }
 
-      const onUp = (me: MouseEvent) => {
-        if (!dragStart.current) return
-        const dx = me.clientX - dragStart.current.mx
-        const dy = me.clientY - dragStart.current.my
+      const finalizeDrag = (clientX: number, clientY: number) => {
+        if (!dragStart.current) {
+          cleanupDragListeners()
+          setDraggingPixel(null)
+          return
+        }
 
-        if (Math.abs(dx) >= 4 || Math.abs(dy) >= 4) {
+        const dx = clientX - dragStart.current.mx
+        const dy = clientY - dragStart.current.my
+        const didDrag = Math.abs(dx) >= 4 || Math.abs(dy) >= 4
+
+        if (didDrag) {
           // Snap to grid on release
           const rawX = Math.max(0, dragStart.current.ix + dx)
           const rawY = Math.max(0, dragStart.current.iy + dy)
@@ -175,12 +195,41 @@ export function Desktop() {
 
         dragStart.current = null
         setDraggingPixel(null)
-        document.removeEventListener('mousemove', onMove)
-        document.removeEventListener('mouseup', onUp)
+        cleanupDragListeners()
       }
 
-      document.addEventListener('mousemove', onMove)
-      document.addEventListener('mouseup', onUp)
+      const onMove = (me: PointerEvent) => {
+        if (!dragStart.current || me.pointerId !== dragStart.current.pointerId) return
+        lastPointer.current = { x: me.clientX, y: me.clientY }
+        const dx = me.clientX - dragStart.current.mx
+        const dy = me.clientY - dragStart.current.my
+        if (Math.abs(dx) < 4 && Math.abs(dy) < 4) return
+        setDraggingPixel({
+          id: icon.id,
+          x: Math.max(0, dragStart.current.ix + dx),
+          y: Math.max(0, dragStart.current.iy + dy),
+        })
+      }
+
+      const onUp = (me: PointerEvent) => {
+        if (!dragStart.current || me.pointerId !== dragStart.current.pointerId) return
+        finalizeDrag(me.clientX, me.clientY)
+      }
+
+      const onCancel = (me: PointerEvent) => {
+        if (!dragStart.current || me.pointerId !== dragStart.current.pointerId) return
+        finalizeDrag(me.clientX, me.clientY)
+      }
+
+      const onWindowBlur = () => {
+        const fallback = lastPointer.current ?? { x: e.clientX, y: e.clientY }
+        finalizeDrag(fallback.x, fallback.y)
+      }
+
+      window.addEventListener('pointermove', onMove)
+      window.addEventListener('pointerup', onUp)
+      window.addEventListener('pointercancel', onCancel)
+      window.addEventListener('blur', onWindowBlur)
     },
     [iconPositions, setIconPositions]
   )
@@ -245,12 +294,13 @@ export function Desktop() {
               key={icon.id}
               className={`${styles.icon} ${selectedIcon === icon.id ? styles.selected : ''} ${isDragging ? styles.dragging : ''}`}
               style={{ left, top }}
-              onMouseDown={(e) => handleIconMouseDown(e, icon)}
+              onPointerDown={(e) => handleIconPointerDown(e, icon)}
               onClick={(e) => handleIconClick(e, icon)}
+              onDragStart={(e) => e.preventDefault()}
               title={`Double-cliquer pour ouvrir ${icon.label}`}
             >
               {icon.image ? (
-                <img src={icon.image} alt={icon.label} className={styles.iconImage} />
+                <img src={icon.image} alt={icon.label} className={styles.iconImage} draggable={false} />
               ) : (
                 <span className={styles.iconEmoji}>{icon.icon}</span>
               )}

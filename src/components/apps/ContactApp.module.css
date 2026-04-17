@@ -16,10 +16,14 @@
   overflow-y: auto;
   white-space: pre-wrap;
   word-break: break-all;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .line {
   line-height: 1.4;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .line.error {

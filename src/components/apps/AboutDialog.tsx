@@ -13,7 +13,7 @@ export function AboutDialog() {
       <div className={styles.divider} />
       <div className={styles.info}>
         <p><strong>Portfolio de Terry BARILLON</strong></p>
-        <p>Développeur Full-Stack · TypeScript · React · Node.js</p>
+        <p>Développeur Full-Stack · TypeScript · React · Vue.js</p>
         <p>Ce portfolio simule un environnement de bureau Windows 95.</p>
       </div>
       <div className={styles.divider} />

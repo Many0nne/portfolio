@@ -1,0 +1,117 @@
+/* Windows 95 CSS variables */
+:root {
+  --win95-bg:         #008080;
+  --win95-surface:    #c0c0c0;
+  --win95-dark:       #808080;
+  --win95-darker:     #404040;
+  --win95-light:      #ffffff;
+  --win95-blue:       #000080;
+  --win95-blue-light: #1084d0;
+  --win95-text:       #000000;
+  --win95-text-inv:   #ffffff;
+
+  --win95-border-raised: 2px solid;
+  --win95-border-raised-color: var(--win95-light) var(--win95-darker) var(--win95-darker) var(--win95-light);
+  --win95-border-sunken: 2px solid;
+  --win95-border-sunken-color: var(--win95-darker) var(--win95-light) var(--win95-light) var(--win95-darker);
+  --win95-border-raised-thin: 1px solid;
+  --win95-border-raised-thin-color: var(--win95-light) var(--win95-darker) var(--win95-darker) var(--win95-light);
+  --win95-border-sunken-thin: 1px solid;
+  --win95-border-sunken-thin-color: var(--win95-darker) var(--win95-light) var(--win95-light) var(--win95-darker);
+  --win95-shadow-popup: 2px 2px 0 var(--win95-darker);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'MS Sans Serif', 'Microsoft Sans Serif', system-ui, Arial, sans-serif;
+  font-size: 12px;
+  color: var(--win95-text);
+  background: var(--win95-bg);
+  cursor: default;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+/* Global button reset to Windows 95 style */
+button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+/* Windows 95 raised button */
+.button {
+  padding: 4px 16px;
+  background: var(--win95-surface);
+  border: var(--win95-border-raised);
+  border-color: var(--win95-border-raised-color);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  min-width: 72px;
+}
+
+.button:active {
+  border: var(--win95-border-sunken);
+  border-color: var(--win95-border-sunken-color);
+}
+
+.button:focus {
+  outline: 1px dotted var(--win95-text);
+  outline-offset: -4px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--win95-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--win95-surface);
+  border: var(--win95-border-raised);
+  border-color: var(--win95-border-raised-color);
+}
+
+::-webkit-scrollbar-button {
+  background: var(--win95-surface);
+  border: var(--win95-border-raised);
+  border-color: var(--win95-border-raised-color);
+  width: 16px;
+  height: 16px;
+}
+
+/* Mobile banner */
+@media (max-width: 768px) {
+  body::after {
+    content: '⚠️ Ce site est optimisé pour un écran desktop (≥ 1024px)';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #000080;
+    color: white;
+    text-align: center;
+    padding: 8px;
+    font-size: 13px;
+    z-index: 99999;
+  }
+}

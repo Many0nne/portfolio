@@ -1,0 +1,202 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-size: 12px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-bottom: 1px solid var(--win95-dark);
+  flex-shrink: 0;
+}
+
+.toolBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  background: var(--win95-surface);
+  border: var(--win95-border-raised-thin);
+  border-color: var(--win95-border-raised-thin-color);
+  cursor: pointer;
+}
+
+.toolBtnIcon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.toolBtn:active {
+  border: var(--win95-border-sunken-thin);
+  border-color: var(--win95-border-sunken-thin-color);
+}
+
+.addressBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--win95-dark);
+  flex-shrink: 0;
+  font-size: 11px;
+}
+
+.addressLabel {
+  flex-shrink: 0;
+  font-weight: bold;
+}
+
+.addressInput {
+  flex: 1;
+  font-size: 11px;
+  padding: 1px 4px;
+  border: var(--win95-border-sunken-thin);
+  border-color: var(--win95-border-sunken-thin-color);
+  background: white;
+  font-family: inherit;
+  color: var(--win95-text);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.tree {
+  width: 160px;
+  flex-shrink: 0;
+  border-right: 2px solid var(--win95-dark);
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.treeItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  cursor: pointer;
+  font-size: 11px;
+  border: 1px solid transparent;
+}
+
+.treeItem:hover {
+  background: var(--win95-blue);
+  color: var(--win95-text-inv);
+}
+
+.treeItem.selected {
+  background: var(--win95-blue);
+  color: var(--win95-text-inv);
+}
+
+.treeIcon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.fileGrid {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.viewIcons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-content: flex-start;
+}
+
+.fileIcon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 72px;
+  padding: 6px 4px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  text-align: center;
+}
+
+.fileIcon:hover {
+  background: rgba(0, 0, 128, 0.15);
+  border: 1px dotted var(--win95-blue);
+}
+
+.fileIconImg {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.fileIconName {
+  font-size: 10px;
+  word-break: break-word;
+  line-height: 1.2;
+  max-width: 70px;
+}
+
+.viewList {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.viewList th {
+  text-align: left;
+  padding: 2px 8px;
+  font-size: 11px;
+  background: var(--win95-surface);
+  border-bottom: 1px solid var(--win95-dark);
+  cursor: pointer;
+  user-select: none;
+  border-right: 2px solid var(--win95-light);
+}
+
+.viewList td {
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.listIconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.listIconImg {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.viewList tr:hover td {
+  background: var(--win95-blue);
+  color: var(--win95-text-inv);
+}
+
+.statusBar {
+  padding: 2px 8px;
+  font-size: 11px;
+  border-top: 1px solid var(--win95-dark);
+  background: var(--win95-surface);
+  flex-shrink: 0;
+}

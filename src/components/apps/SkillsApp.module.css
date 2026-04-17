@@ -1,0 +1,75 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-size: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--win95-surface);
+  border-bottom: 1px solid var(--win95-dark);
+  font-weight: bold;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.headerIcon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section {
+  border: var(--win95-border-sunken);
+  border-color: var(--win95-border-sunken-color);
+}
+
+.sectionTitle {
+  background: var(--win95-blue);
+  color: var(--win95-text-inv);
+  font-weight: bold;
+  font-size: 11px;
+  padding: 3px 8px;
+}
+
+.skillList {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skillRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.skillIcon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.skillName {
+  width: 140px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

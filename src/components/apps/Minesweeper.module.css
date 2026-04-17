@@ -1,0 +1,105 @@
+.game {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  background: var(--win95-surface);
+  user-select: none;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 4px 6px;
+  border: var(--win95-border-sunken);
+  border-color: var(--win95-border-sunken-color);
+  background: var(--win95-surface);
+}
+
+.counter {
+  background: #000;
+  color: #f00;
+  font-family: 'Courier New', monospace;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 2px 4px;
+  min-width: 40px;
+  text-align: center;
+  border-top: 1px solid var(--win95-darker);
+  border-left: 1px solid var(--win95-darker);
+}
+
+.smileyBtn {
+  font-size: 20px;
+  cursor: pointer;
+  padding: 2px 6px;
+  min-width: unset;
+  min-height: unset;
+  box-shadow: none;
+  background: var(--win95-surface);
+  border: var(--win95-border-raised);
+  border-color: var(--win95-border-raised-color);
+}
+
+.smileyBtn:active {
+  border: var(--win95-border-sunken);
+  border-color: var(--win95-border-sunken-color);
+}
+
+.grid {
+  display: grid;
+  border-top: 3px solid var(--win95-darker);
+  border-left: 3px solid var(--win95-darker);
+  border-right: 3px solid var(--win95-light);
+  border-bottom: 3px solid var(--win95-light);
+}
+
+.cell {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: none;
+  background: var(--win95-surface);
+  border: var(--win95-border-raised);
+  border-color: var(--win95-border-raised-color);
+}
+
+.cell.revealed {
+  border: 1px solid var(--win95-dark);
+  background: var(--win95-surface);
+  cursor: default;
+}
+
+.cell.mine {
+  background: red;
+}
+
+.message {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.retryBtn {
+  padding: 2px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  min-width: unset;
+  min-height: unset;
+  box-shadow: none;
+  background: var(--win95-surface);
+  border: var(--win95-border-raised);
+  border-color: var(--win95-border-raised-color);
+}

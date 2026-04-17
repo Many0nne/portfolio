@@ -1,0 +1,27 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.track {
+  flex: 1;
+  height: 12px;
+  background: var(--win95-light);
+  border: var(--win95-border-sunken-thin);
+  border-color: var(--win95-border-sunken-thin-color);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  background: var(--win95-blue);
+  transition: width 0.3s ease;
+}
+
+.pct {
+  font-size: 11px;
+  min-width: 28px;
+  text-align: right;
+  color: var(--win95-text);
+}

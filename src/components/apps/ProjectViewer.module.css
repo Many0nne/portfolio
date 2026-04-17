@@ -1,0 +1,125 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  font-size: 12px;
+}
+
+.screenshot {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  border-bottom: 2px solid var(--win95-darker);
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.screenshot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.screenshotPlaceholder {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  background: #000080;
+  color: white;
+  font-size: 14px;
+  position: absolute;
+  inset: 0;
+}
+
+.screenshotPlaceholderIcon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.description {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--win95-text);
+}
+
+.metaTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  border-top: 1px solid var(--win95-darker);
+  border-left: 1px solid var(--win95-darker);
+}
+
+.metaTable th,
+.metaTable td {
+  padding: 4px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--win95-dark);
+  border-right: 1px solid var(--win95-darker);
+}
+
+.metaTable th {
+  background: var(--win95-blue);
+  color: var(--win95-text-inv);
+  font-weight: bold;
+  white-space: nowrap;
+  width: 120px;
+}
+
+.links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.linkBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
+  text-decoration: none;
+  color: var(--win95-text);
+  background: var(--win95-surface);
+  border: var(--win95-border-raised);
+  border-color: var(--win95-border-raised-color);
+}
+
+.linkBtnIcon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.linkBtn:hover {
+  background: var(--win95-blue);
+  color: var(--win95-text-inv);
+}
+
+.linkBtn:active {
+  border: var(--win95-border-sunken);
+  border-color: var(--win95-border-sunken-color);
+}

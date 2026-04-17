@@ -1,0 +1,42 @@
+.container {
+  padding: 16px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.logoArea {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.productName {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.version {
+  font-size: 11px;
+  color: var(--win95-dark);
+}
+
+.divider {
+  height: 1px;
+  background: var(--win95-dark);
+  margin: 2px 0;
+}
+
+.info p, .credits p {
+  margin: 2px 0;
+}
+
+.credits {
+  color: var(--win95-dark);
+}

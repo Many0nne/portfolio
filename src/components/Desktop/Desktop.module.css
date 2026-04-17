@@ -1,0 +1,91 @@
+.desktop {
+  position: fixed;
+  inset: 0;
+  bottom: 40px;
+  background-color: var(--win95-bg);
+  /* background-image: url('/wallpapers/default.png'); */
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+  user-select: none;
+}
+
+.iconsGrid {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.icon {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  width: 72px;
+  text-align: center;
+}
+
+.icon:hover,
+.icon.selected {
+  background: rgba(0, 0, 128, 0.3);
+  border: 1px dotted var(--win95-light);
+}
+
+.icon.dragging {
+  opacity: 0.7;
+  z-index: 100;
+}
+
+.iconEmoji {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.iconImage {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  display: block;
+}
+
+.iconLabel {
+  font-size: 11px;
+  color: var(--win95-light);
+  text-shadow: 1px 1px 1px #000;
+  word-break: break-word;
+  max-width: 68px;
+  line-height: 1.2;
+}
+
+/* Context menu */
+.contextMenu {
+  position: fixed;
+  background: var(--win95-surface);
+  border: var(--win95-border-raised-thin);
+  border-color: var(--win95-border-raised-thin-color);
+  box-shadow: var(--win95-shadow-popup);
+  z-index: 9999;
+  min-width: 160px;
+  padding: 2px 0;
+}
+
+.contextMenuItem {
+  padding: 4px 20px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.contextMenuItem:hover {
+  background: var(--win95-blue);
+  color: var(--win95-text-inv);
+}
+
+.contextSeparator {
+  height: 1px;
+  background: var(--win95-dark);
+  margin: 3px 4px;
+}

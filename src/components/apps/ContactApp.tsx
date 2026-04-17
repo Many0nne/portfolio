@@ -19,10 +19,10 @@ const COMMANDS: Record<string, () => string[]> = {
   ],
   whoami: () => [
     'Terry BARILLON',
-    'Full-Stack Developer · TypeScript · React · Node.js',
+    'Full-Stack Developer · TypeScript · React · Vue.js',
     '',
   ],
-  email: () => ['terrybarillon.akajoule@gmail.com', ''],
+  email: () => ['barillon.terry.85@gmail.com', ''],
   github: () => ['https://github.com/Many0nne', ''],
   linkedin: () => ['https://linkedin.com/in/terry-barillon', ''],
 }

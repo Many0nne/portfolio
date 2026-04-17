@@ -2,8 +2,8 @@
   position: fixed;
   inset: 0;
   bottom: 40px;
+  /* Fallback in case inline theme style is unavailable */
   background-color: var(--win95-bg);
-  /* background-image: url('/wallpapers/default.png'); */
   background-size: cover;
   background-position: center;
   overflow: hidden;
@@ -77,11 +77,39 @@
   padding: 4px 20px;
   font-size: 12px;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .contextMenuItem:hover {
   background: var(--win95-blue);
   color: var(--win95-text-inv);
+}
+
+.contextSubmenuTrigger {
+  position: relative;
+}
+
+.contextMenuArrow {
+  float: right;
+  margin-left: 10px;
+}
+
+.contextSubmenu {
+  position: absolute;
+  top: -2px;
+  left: calc(100% - 3px);
+  display: none;
+  min-width: 140px;
+  padding: 2px 0;
+  background: var(--win95-surface);
+  border: var(--win95-border-raised-thin);
+  border-color: var(--win95-border-raised-thin-color);
+  box-shadow: var(--win95-shadow-popup);
+  z-index: 10000;
+}
+
+.contextSubmenuTrigger:hover .contextSubmenu {
+  display: block;
 }
 
 .contextSeparator {

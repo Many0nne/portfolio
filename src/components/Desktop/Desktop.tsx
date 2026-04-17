@@ -88,9 +88,46 @@ interface ContextMenu {
   y: number
 }
 
+type DesktopThemeId = 'emerald' | 'azure' | 'sunset' | 'graphite'
+
+interface DesktopTheme {
+  id: DesktopThemeId
+  label: string
+  backgroundColor: string
+  backgroundImage: string
+}
+
+const DESKTOP_THEMES: DesktopTheme[] = [
+  {
+    id: 'emerald',
+    label: 'Classique',
+    backgroundColor: '#008080',
+    backgroundImage: 'linear-gradient(160deg, rgba(0, 128, 128, 0.95) 0%, rgba(0, 102, 102, 0.95) 100%)',
+  },
+  {
+    id: 'azure',
+    label: 'Azure',
+    backgroundColor: '#0b4f8a',
+    backgroundImage: 'linear-gradient(165deg, rgba(11, 79, 138, 0.95) 0%, rgba(45, 126, 196, 0.95) 100%)',
+  },
+  {
+    id: 'sunset',
+    label: 'Sunset',
+    backgroundColor: '#8a3f2f',
+    backgroundImage: 'linear-gradient(170deg, rgba(163, 66, 43, 0.95) 0%, rgba(224, 123, 57, 0.95) 100%)',
+  },
+  {
+    id: 'graphite',
+    label: 'Graphite',
+    backgroundColor: '#3c4751',
+    backgroundImage: 'linear-gradient(170deg, rgba(60, 71, 81, 0.95) 0%, rgba(91, 106, 119, 0.95) 100%)',
+  },
+]
+
 export function Desktop() {
   const { openWindow } = useWindowStore()
   const { play } = useSound()
+  const [desktopTheme, setDesktopTheme] = useLocalStorage<DesktopThemeId>('win95-desktop-theme-v1', 'emerald')
   const [iconPositions, setIconPositions] = useLocalStorage<Record<string, GridPos>>(
     'win95-icon-positions-v2',
     {}
@@ -267,9 +304,15 @@ export function Desktop() {
     setTimeout(() => { document.body.style.opacity = '1' }, 150)
   }, [])
 
+  const selectedTheme = DESKTOP_THEMES.find((theme) => theme.id === desktopTheme) ?? DESKTOP_THEMES[0]
+
   return (
     <div
       className={styles.desktop}
+      style={{
+        backgroundColor: selectedTheme.backgroundColor,
+        backgroundImage: selectedTheme.backgroundImage,
+      }}
       onClick={handleDesktopClick}
       onContextMenu={handleContextMenu}
     >
@@ -318,6 +361,28 @@ export function Desktop() {
         >
           <div className={styles.contextMenuItem} onClick={handleRefresh}>
             Actualiser
+          </div>
+          <div className={styles.contextSeparator} />
+          <div className={styles.contextSubmenuTrigger}>
+            <div className={styles.contextMenuItem}>
+              Fonds d'ecran
+              <span className={styles.contextMenuArrow}>▶</span>
+            </div>
+            <div className={styles.contextSubmenu}>
+              {DESKTOP_THEMES.map((theme) => (
+                <div
+                  key={theme.id}
+                  className={styles.contextMenuItem}
+                  onClick={() => {
+                    setDesktopTheme(theme.id)
+                    setContextMenu(null)
+                  }}
+                >
+                  {desktopTheme === theme.id ? '✓ ' : ''}
+                  {theme.label}
+                </div>
+              ))}
+            </div>
           </div>
           <div className={styles.contextSeparator} />
           <div className={styles.contextMenuItem} onClick={() => { openWindow('about'); setContextMenu(null) }}>

@@ -27,7 +27,7 @@ export const projects: Project[] = [
       'documentation Swagger auto-générée et persistance JSON optionnelle.',
     screenshot: '/img/TS-Mock-API.png',
     techStack: ['TypeScript', 'Node.js', 'Express', 'Faker.js', 'Swagger/OpenAPI'],
-    date: '2064',
+    date: '2026',
     role: 'Auteur · Conception & développement complet',
     links: [
       { label: 'GitHub', url: 'https://github.com/Many0nne/TS-Mock-API' },

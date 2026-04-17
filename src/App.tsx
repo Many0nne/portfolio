@@ -28,6 +28,9 @@ const FileExplorer = lazy(() =>
 const Minesweeper = lazy(() =>
   import('./components/apps/Minesweeper').then((m) => ({ default: m.Minesweeper }))
 )
+const MoviesApp = lazy(() =>
+  import('./components/apps/MoviesApp').then((m) => ({ default: m.MoviesApp }))
+)
 
 function AppContent({ app, props, windowId }: { app: AppType; props?: Record<string, unknown>; windowId: string }) {
   switch (app) {
@@ -46,6 +49,8 @@ function AppContent({ app, props, windowId }: { app: AppType; props?: Record<str
       return <FileExplorer initialFolderId={props?.folderId as string | undefined} />
     case 'minesweeper':
       return <Minesweeper windowId={windowId} />
+    case 'movies':
+      return <MoviesApp />
     default:
       return <div style={{ padding: 16 }}>Application inconnue.</div>
   }
@@ -71,23 +76,23 @@ export default function App() {
   return (
     <>
       <Desktop />
-      <Suspense fallback={null}>
-        {windows.map((win) => (
-          <Window
-            key={win.id}
-            id={win.id}
-            title={win.title}
-            icon={win.icon}
-            isMinimized={win.isMinimized}
-            isMaximized={win.isMaximized}
-            zIndex={win.zIndex}
-            position={win.position}
-            size={win.size}
-          >
+      {windows.map((win) => (
+        <Window
+          key={win.id}
+          id={win.id}
+          title={win.title}
+          icon={win.icon}
+          isMinimized={win.isMinimized}
+          isMaximized={win.isMaximized}
+          zIndex={win.zIndex}
+          position={win.position}
+          size={win.size}
+        >
+          <Suspense fallback={<div style={{ padding: 16 }}>Chargement...</div>}>
             <AppContent app={win.app} props={win.props} windowId={win.id} />
-          </Window>
-        ))}
-      </Suspense>
+          </Suspense>
+        </Window>
+      ))}
       <Taskbar onShutdown={handleShutdown} />
     </>
   )

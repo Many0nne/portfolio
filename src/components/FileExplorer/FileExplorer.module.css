@@ -3,6 +3,7 @@
   flex-direction: column;
   height: 100%;
   font-size: 12px;
+  position: relative;
 }
 
 .toolbar {
@@ -199,4 +200,101 @@
   border-top: 1px solid var(--win95-dark);
   background: var(--win95-surface);
   flex-shrink: 0;
+}
+
+/* PIN overlay for locked folders */
+.pinOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(192, 192, 192, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.pinBox {
+  background: var(--surface);
+  box-shadow: var(--border-raised-outer), var(--border-raised-inner);
+  padding: 3px;
+  min-width: 250px;
+}
+
+.pinBoxTitle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  background: var(--dialog-blue);
+  color: var(--button-highlight);
+  font-size: 11px;
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+
+.pinBoxTitleIcon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.pinBoxBody {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+}
+
+.pinBoxFolderIcon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pinBoxMessage {
+  margin: 0 0 8px;
+  font-size: 11px;
+}
+
+.pinBoxForm {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pinBoxLabel {
+  font-size: 11px;
+}
+
+.pinBoxInput {
+  width: 56px;
+  font-family: inherit;
+  font-size: 14px;
+  padding: 2px 6px;
+  letter-spacing: 6px;
+  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+  border: none;
+  background: white;
+  margin-top: 2px;
+}
+
+.pinBoxInputError {
+  outline: 1px solid #800000;
+}
+
+.pinBoxError {
+  font-size: 10px;
+  color: #800000;
+  min-height: 14px;
+}
+
+.pinBoxButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 8px;
 }

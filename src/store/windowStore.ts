@@ -23,6 +23,7 @@ const DEFAULT_SIZES: Record<AppType, { width: number; height: number }> = {
   contact: { width: 520, height: 380 },
   about: { width: 380, height: 240 },
   minesweeper: { width: 262, height: 340 },
+  movies: { width: 480, height: 380 },
 }
 
 const APP_TITLES: Record<AppType, string> = {
@@ -34,6 +35,7 @@ const APP_TITLES: Record<AppType, string> = {
   contact: 'Terminal',
   about: 'À propos',
   minesweeper: 'Démineur',
+  movies: 'Films favoris',
 }
 
 const APP_ICONS: Record<AppType, string> = {
@@ -45,6 +47,7 @@ const APP_ICONS: Record<AppType, string> = {
   contact: 'cmd',
   about: 'info',
   minesweeper: 'minesweeper',
+  movies: 'notepad',
 }
 
 let zCounter = 10

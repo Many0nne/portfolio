@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import styles from './FileExplorer.module.css'
 import { filesystem } from '../../data/filesystem'
 import type { VirtualFile } from '../../data/filesystem'
@@ -6,13 +6,27 @@ import { useWindowStore } from '../../store/windowStore'
 import { useSound } from '../../hooks/useSound'
 import { ICON_MAP } from '../../data/icons'
 
+const SECRET_PIN = '95'
+
 type ViewMode = 'icons' | 'list'
+
+interface PinState {
+  target: VirtualFile
+  value: string
+  error: boolean
+}
 
 export function FileExplorer({ initialFolderId }: { initialFolderId?: string } = {}) {
   const [selectedFolder, setSelectedFolder] = useState<VirtualFile | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('icons')
+  const [pinState, setPinState] = useState<PinState | null>(null)
+  const pinInputRef = useRef<HTMLInputElement>(null)
   const { openWindow } = useWindowStore()
   const { play } = useSound()
+
+  useEffect(() => {
+    if (pinState) pinInputRef.current?.focus()
+  }, [pinState])
 
   const currentFiles = selectedFolder?.children ?? filesystem
 
@@ -20,10 +34,30 @@ export function FileExplorer({ initialFolderId }: { initialFolderId?: string } =
     ? `C:\\PORTFOLIO\\${selectedFolder.name.toUpperCase()}`
     : 'C:\\PORTFOLIO'
 
+  const openFolder = useCallback((file: VirtualFile) => {
+    if (file.locked) {
+      setPinState({ target: file, value: '', error: false })
+      return
+    }
+    setSelectedFolder(file)
+  }, [])
+
+  const handlePinSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault()
+    if (!pinState) return
+    if (pinState.value === SECRET_PIN) {
+      setSelectedFolder(pinState.target)
+      setPinState(null)
+    } else {
+      setPinState((prev) => prev ? { ...prev, value: '', error: true } : null)
+      setTimeout(() => setPinState((prev) => prev ? { ...prev, error: false } : null), 2000)
+    }
+  }, [pinState])
+
   const handleFileOpen = useCallback(
     (file: VirtualFile) => {
       if (file.type === 'folder') {
-        setSelectedFolder(file)
+        openFolder(file)
         return
       }
       if (file.appType) {
@@ -31,7 +65,7 @@ export function FileExplorer({ initialFolderId }: { initialFolderId?: string } =
         openWindow(file.appType, file.appProps)
       }
     },
-    [openWindow, play]
+    [openWindow, play, openFolder]
   )
 
   const handleUp = useCallback(() => {
@@ -41,7 +75,12 @@ export function FileExplorer({ initialFolderId }: { initialFolderId?: string } =
   useEffect(() => {
     if (!initialFolderId) return
     const found = filesystem.find((f) => f.id === initialFolderId && f.type === 'folder')
-    if (found) setSelectedFolder(found)
+    if (!found) return
+    if (found.locked) {
+      setPinState({ target: found, value: '', error: false })
+    } else {
+      setSelectedFolder(found)
+    }
   }, [initialFolderId])
 
   const renderIcon = (key: string, className: string) => {
@@ -54,6 +93,41 @@ export function FileExplorer({ initialFolderId }: { initialFolderId?: string } =
 
   return (
     <div className={styles.container}>
+      {pinState && (
+        <div className={styles.pinOverlay}>
+          <div className={styles.pinBox}>
+            <div className={styles.pinBoxTitle}>
+              <img src="/img/Windows_95_FOLDER.png" alt="" className={styles.pinBoxTitleIcon} />
+              Dossier protégé
+            </div>
+            <div className={styles.pinBoxBody}>
+              <img src="/img/Windows_95_FOLDER.png" alt="" className={styles.pinBoxFolderIcon} />
+              <div>
+                <p className={styles.pinBoxMessage}>Ce dossier est protégé par un code d'accès.</p>
+                <form onSubmit={handlePinSubmit} className={styles.pinBoxForm}>
+                  <label className={styles.pinBoxLabel}>Code d'accès :</label>
+                  <input
+                    ref={pinInputRef}
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={2}
+                    value={pinState.value}
+                    onChange={(e) => setPinState((prev) => prev ? { ...prev, value: e.target.value.replace(/\D/g, '') } : null)}
+                    className={`${styles.pinBoxInput} ${pinState.error ? styles.pinBoxInputError : ''}`}
+                    autoComplete="off"
+                  />
+                  <span className={styles.pinBoxError}>{pinState.error ? 'Code incorrect.' : ''}</span>
+                  <div className={styles.pinBoxButtons}>
+                    <button type="button" className="button" onClick={() => setPinState(null)}>Annuler</button>
+                    <button type="submit" className="button">OK</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className={styles.toolbar}>
         <button className={styles.toolBtn} onClick={handleUp} disabled={!selectedFolder}>
@@ -91,7 +165,7 @@ export function FileExplorer({ initialFolderId }: { initialFolderId?: string } =
               key={f.id}
               className={`${styles.treeItem} ${selectedFolder?.id === f.id ? styles.selected : ''}`}
               style={{ paddingLeft: 16 }}
-              onClick={() => setSelectedFolder(f)}
+              onClick={() => openFolder(f)}
             >
               {renderIcon('folder', styles.treeIcon)}
               {f.name}

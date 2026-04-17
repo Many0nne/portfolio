@@ -33,6 +33,7 @@ const DESKTOP_ICONS: DesktopIconDef[] = [
   { id: 'contact', label: 'Contact', icon: 'cmd', image: '/img/Shell323_32x32_4.png', app: 'contact', defaultPos: { col: 0, row: 3 } },
   { id: 'about', label: 'À propos', icon: 'info', image: '/img/Awfxex32Info_32x32_4.png', app: 'about', defaultPos: { col: 0, row: 4 } },
   { id: 'minesweeper', label: 'Démineur', icon: 'minesweeper', image: '/img/95minesweeper.ico', app: 'minesweeper', defaultPos: { col: 1, row: 0 } },
+  { id: 'secret-folder', label: 'Terry Files', icon: 'folder', image: '/img/Windows_95_FOLDER.png', app: 'file-explorer', props: { folderId: 'TerryFiles' }, defaultPos: { col: 1, row: 1 } },
 ]
 
 function gridToPixel(col: number, row: number) {

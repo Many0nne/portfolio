@@ -7,12 +7,14 @@ export type AppType =
   | 'contact'
   | 'about'
   | 'minesweeper'
+  | 'movies'
 
 export interface VirtualFile {
   id: string
   name: string
   type: 'folder' | 'project' | 'document'
   icon: string
+  locked?: boolean
   metadata: {
     size: string
     modified: string
@@ -82,5 +84,23 @@ export const filesystem: VirtualFile[] = [
     icon: 'cmd',
     metadata: { size: '0.5 Ko', modified: '01/04/2026', description: 'Terminal de contact' },
     appType: 'contact',
+  },
+  {
+    id: 'TerryFiles',
+    name: 'Terry Files',
+    type: 'folder',
+    icon: 'folder',
+    locked: true,
+    metadata: { size: '—', modified: '17/04/2026', description: 'Dossier protégé' },
+    children: [
+      {
+        id: 'films',
+        name: 'films-favoris.lst',
+        type: 'document',
+        icon: 'notepad',
+        metadata: { size: '0.8 Ko', modified: '17/04/2026', description: '4 films favoris' },
+        appType: 'movies',
+      },
+    ],
   },
 ]

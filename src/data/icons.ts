@@ -9,4 +9,5 @@ export const ICON_MAP: Record<string, string> = {
   recycle: '/img/Windows_95_FOLDER.png',
   computer: '/img/windows_95_logo.png',
   network: '/img/web_file_0.png',
+  mail: '/img/FileText_32x32_4.png',
 }

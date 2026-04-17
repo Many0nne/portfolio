@@ -57,6 +57,12 @@ export function StartMenu({ onClose, onShutdown }: StartMenuProps) {
                 </span>
                 Terminal (Contact)
               </div>
+              <div className={styles.menuItem} onClick={() => open('mail')}>
+                <span className={styles.menuItemIcon}>
+                  <AppIcon name="mail" size={16} className={styles.menuItemIconImg} />
+                </span>
+                Messagerie
+              </div>
             </div>
           )}
         </div>

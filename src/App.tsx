@@ -31,6 +31,9 @@ const Minesweeper = lazy(() =>
 const MoviesApp = lazy(() =>
   import('./components/apps/MoviesApp').then((m) => ({ default: m.MoviesApp }))
 )
+const MailApp = lazy(() =>
+  import('./components/apps/MailApp').then((m) => ({ default: m.MailApp }))
+)
 
 function AppContent({ app, props, windowId }: { app: AppType; props?: Record<string, unknown>; windowId: string }) {
   switch (app) {
@@ -51,6 +54,8 @@ function AppContent({ app, props, windowId }: { app: AppType; props?: Record<str
       return <Minesweeper windowId={windowId} />
     case 'movies':
       return <MoviesApp />
+    case 'mail':
+      return <MailApp />
     default:
       return <div style={{ padding: 16 }}>Application inconnue.</div>
   }

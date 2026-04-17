@@ -1,0 +1,269 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-size: 12px;
+  background: var(--win95-surface);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 4px;
+  border-bottom: 1px solid var(--win95-dark);
+  flex-shrink: 0;
+}
+
+.toolBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  font-size: 11px;
+  background: var(--win95-surface);
+  border: var(--win95-border-raised-thin);
+  border-color: var(--win95-border-raised-thin-color);
+  cursor: default;
+  white-space: nowrap;
+}
+
+.toolBtn:active {
+  border: var(--win95-border-sunken-thin);
+  border-color: var(--win95-border-sunken-thin-color);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Folder tree ── */
+
+.folderTree {
+  width: 160px;
+  min-width: 120px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--win95-dark);
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.treeRoot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-weight: bold;
+  font-size: 11px;
+}
+
+.treeRootIcon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
+.treeItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px 2px 20px;
+  cursor: default;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.treeItem:hover {
+  background: var(--win95-blue);
+  color: var(--win95-text-inv);
+}
+
+.treeItemActive {
+  background: var(--win95-blue);
+  color: var(--win95-text-inv);
+}
+
+.treeItemIcon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
+.treeItemLabel {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.treeItemBadge {
+  font-size: 10px;
+  opacity: 0.85;
+}
+
+/* ── Right pane ── */
+
+.rightPane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Mail list ── */
+
+.mailListWrapper {
+  height: 38%;
+  min-height: 80px;
+  border-bottom: 1px solid var(--win95-dark);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.mailTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.mailTable thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.mailTable th {
+  background: var(--win95-surface);
+  border: var(--win95-border-raised-thin);
+  border-color: var(--win95-border-raised-thin-color);
+  padding: 2px 6px;
+  text-align: left;
+  font-weight: normal;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.mailTable td {
+  padding: 2px 6px;
+  border-bottom: 1px solid var(--win95-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0;
+  cursor: default;
+}
+
+.colFlag {
+  width: 20px;
+}
+
+.colFrom {
+  width: 30%;
+}
+
+.colSubject {
+  width: auto;
+}
+
+.colDate {
+  width: 120px;
+  text-align: right;
+}
+
+.mailRow:hover {
+  background: #c0c0ff;
+}
+
+.mailRowSelected {
+  background: var(--win95-blue) !important;
+  color: var(--win95-text-inv);
+}
+
+.mailRowUnread td {
+  font-weight: bold;
+}
+
+.flagIcon {
+  font-size: 10px;
+}
+
+/* ── Mail preview ── */
+
+.mailPreview {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--win95-light);
+  border: var(--win95-border-sunken-thin);
+  border-color: var(--win95-border-sunken-thin-color);
+  margin: 4px;
+}
+
+.mailMeta {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--win95-dark);
+  background: var(--win95-surface);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.mailMetaRow {
+  display: flex;
+  gap: 4px;
+  line-height: 1.6;
+}
+
+.mailMetaLabel {
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.mailMetaValue {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mailImagePreview {
+  padding: 10px 12px 0;
+}
+
+.mailPreviewImage {
+  display: block;
+  width: 100%;
+  max-width: 340px;
+  border: 1px solid var(--win95-dark);
+  image-rendering: pixelated;
+}
+
+.mailBody {
+  padding: 10px 12px;
+  font-size: 12px;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.emptyPreview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--win95-dark);
+  font-size: 11px;
+  font-style: italic;
+}
+
+/* ── Status bar ── */
+
+.statusBar {
+  padding: 2px 8px;
+  font-size: 11px;
+  border-top: 1px solid var(--win95-dark);
+  background: var(--win95-surface);
+  flex-shrink: 0;
+}

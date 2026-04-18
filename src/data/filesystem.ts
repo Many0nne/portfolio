@@ -9,6 +9,7 @@ export type AppType =
   | 'minesweeper'
   | 'movies'
   | 'mail'
+  | 'paint'
 
 export interface VirtualFile {
   id: string

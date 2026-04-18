@@ -63,6 +63,12 @@ export function StartMenu({ onClose, onShutdown }: StartMenuProps) {
                 </span>
                 Messagerie
               </div>
+              <div className={styles.menuItem} onClick={() => open('paint')}>
+                <span className={styles.menuItemIcon}>
+                  <AppIcon name="paint" size={16} className={styles.menuItemIconImg} />
+                </span>
+                Paint
+              </div>
             </div>
           )}
         </div>

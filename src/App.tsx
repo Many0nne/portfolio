@@ -34,6 +34,9 @@ const MoviesApp = lazy(() =>
 const MailApp = lazy(() =>
   import('./components/apps/MailApp').then((m) => ({ default: m.MailApp }))
 )
+const PaintApp = lazy(() =>
+  import('./components/apps/PaintApp').then((m) => ({ default: m.PaintApp }))
+)
 
 function AppContent({ app, props, windowId }: { app: AppType; props?: Record<string, unknown>; windowId: string }) {
   switch (app) {
@@ -56,6 +59,8 @@ function AppContent({ app, props, windowId }: { app: AppType; props?: Record<str
       return <MoviesApp />
     case 'mail':
       return <MailApp />
+    case 'paint':
+      return <PaintApp />
     default:
       return <div style={{ padding: 16 }}>Application inconnue.</div>
   }

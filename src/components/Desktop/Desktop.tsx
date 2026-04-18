@@ -35,6 +35,7 @@ const DESKTOP_ICONS: DesktopIconDef[] = [
   { id: 'minesweeper', label: 'Démineur', icon: 'minesweeper', image: '/img/95minesweeper.ico', app: 'minesweeper', defaultPos: { col: 1, row: 0 } },
   { id: 'secret-folder', label: 'Terry Files', icon: 'folder', image: '/img/Windows_95_FOLDER.png', app: 'file-explorer', props: { folderId: 'TerryFiles' }, defaultPos: { col: 1, row: 1 } },
   { id: 'mail', label: 'Messagerie', icon: 'mail', image: '/img/Mailnews12_32x32_4.png', app: 'mail', defaultPos: { col: 1, row: 2 } },
+  { id: 'paint', label: 'Paint', icon: 'paint', image: '/img/Settings_32x32_4.png', app: 'paint', defaultPos: { col: 2, row: 0 } },
 ]
 
 function gridToPixel(col: number, row: number) {

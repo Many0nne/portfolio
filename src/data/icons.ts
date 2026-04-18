@@ -10,4 +10,10 @@ export const ICON_MAP: Record<string, string> = {
   computer: '/img/windows_95_logo.png',
   network: '/img/web_file_0.png',
   mail: '/img/FileText_32x32_4.png',
+  paint: '/img/Mspaint_32x32_4.png',
+  eraser: '/img/Eraser.png',
+  pen: '/img/pifmgr_19.ico',
+  fill: '/img/Mspaint_32x32_4.png',
+  rect: '/icon/indicator-rectangle-horizontal.svg',
+  line: '/icon/indicator-horizontal.svg',
 }

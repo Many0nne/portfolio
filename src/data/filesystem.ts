@@ -10,6 +10,7 @@ export type AppType =
   | 'movies'
   | 'mail'
   | 'paint'
+  | 'media-player'
 
 export interface VirtualFile {
   id: string

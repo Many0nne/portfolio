@@ -69,6 +69,12 @@ export function StartMenu({ onClose, onShutdown }: StartMenuProps) {
                 </span>
                 Paint
               </div>
+              <div className={styles.menuItem} onClick={() => open('media-player')}>
+                <span className={styles.menuItemIcon}>
+                  <AppIcon name="media-player" size={16} className={styles.menuItemIconImg} />
+                </span>
+                Lecteur Multimédia
+              </div>
             </div>
           )}
         </div>

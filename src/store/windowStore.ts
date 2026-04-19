@@ -26,6 +26,7 @@ const DEFAULT_SIZES: Record<AppType, { width: number; height: number }> = {
   movies: { width: 480, height: 380 },
   mail: { width: 660, height: 480 },
   paint: { width: 800, height: 580 },
+  'media-player': { width: 275, height: 230 },
 }
 
 const APP_TITLES: Record<AppType, string> = {
@@ -40,6 +41,7 @@ const APP_TITLES: Record<AppType, string> = {
   movies: 'Films favoris',
   mail: 'Boîte de réception - MailBox',
   paint: 'Paint',
+  'media-player': 'Lecteur Multimédia',
 }
 
 const APP_ICONS: Record<AppType, string> = {
@@ -54,6 +56,7 @@ const APP_ICONS: Record<AppType, string> = {
   movies: 'notepad',
   mail: 'mail',
   paint: 'paint',
+  'media-player': 'media-player',
 }
 
 let zCounter = 10

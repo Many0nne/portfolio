@@ -1,101 +1,119 @@
-Plan : App Paint (Windows 95)
-                                                                                                                                                                
-     Context
-                                                                                                                                                                
-     Ajouter une app Paint style Windows 95 au portfolio, avec canvas HTML5, palette de couleurs, outils (crayon, gomme, remplissage, formes), et sauvegarde de
-     l'image. Aucun backend requis — tout en localStorage/canvas.                                                                                             
+# Specs Portfolio Win95
 
-     ---
-     Fichiers à créer
+## 3. Calculatrice
 
-     - src/components/apps/PaintApp.tsx — composant principal
-     - src/components/apps/PaintApp.module.css — styles
+**Concept** : `calc.exe` classique — affichage 7 segments, opérations de base.
 
-     Fichiers à modifier
+**UX** : Boutons numériques, opérateurs, display rétro. Tout en état local React.
 
-     1. src/data/filesystem.ts — Ajouter 'paint' au type AppType
-     2. src/store/windowStore.ts — Ajouter entrées dans DEFAULT_SIZES, APP_TITLES, APP_ICONS
-     3. src/data/icons.ts — Ajouter paint dans ICON_MAP
-     4. src/App.tsx — Lazy import + case dans le switch AppContent
-     5. src/components/Desktop/Desktop.tsx — Ajouter icône dans DESKTOP_ICONS
-     6. src/components/Taskbar/StartMenu.tsx — Ajouter entrée dans le menu Programmes
+### Fichiers à créer
 
-     Icône
+- `src/components/apps/Calculator.tsx`
+- `src/components/apps/Calculator.module.css`
 
-     Utiliser une icône Windows 95 existante comme FileText_32x32_4.png ou créer /public/img/paint_icon.png inspiré de la palette Windows 95 (palette +
-     pinceau).
+### Fichiers à modifier
 
-     ---
-     PaintApp — Fonctionnalités
+1. `src/data/filesystem.ts` — ajouter `'calculator'` à `AppType`
+2. `src/store/windowStore.ts` — `DEFAULT_SIZES` (280×380), `APP_TITLES`, `APP_ICONS`
+3. `src/data/icons.ts` — icône 🧮
+4. `src/App.tsx` — lazy import + case
+5. `src/components/Desktop/Desktop.tsx` — `DESKTOP_ICONS`
+6. `src/components/Taskbar/StartMenu.tsx` — item Start Menu
 
-     Outils
 
-     - Crayon (défaut) — dessin libre
-     - Gomme — efface en blanc
-     - Remplissage (pot) — flood fill algorithme BFS sur le canvas
-     - Rectangle — tracé avec preview pendant le drag
-     - Ligne — tracé droit avec preview
+## 5. Internet Explorer (liens / bookmarks)
 
-     Palette
+**Concept** : Fausse barre d'adresse IE5 — liste de liens externes (projets, réseaux, ressources) rendue comme une page HTML statique "retro".
 
-     - 28 couleurs fixes style Windows 95 (grille 2 lignes × 14)
-     - Couleur avant-plan + arrière-plan (clic gauche / clic droit)
-     - Carré "couleur active" visible
+**UX** : Barre d'adresse, boutons Précédent/Suivant, barre de favoris prédéfinis. Contenu affiché dans une zone scrollable stylée.
 
-     Taille de pinceau
+> Note : Les iframes peuvent bloquer des sites tiers (CSP). Alternative recommandée : rendu d'une "page" statique interne simulée.
 
-     - 3 tailles : S (1px), M (3px), L (8px)
+### Données
 
-     Barre d'outils
+`src/data/bookmarks.ts`
 
-     - Style Windows 95 (boutons 3D en relief, 98.css)
-     - Toolbar verticale gauche pour outils
-     - Palette en bas
+```ts
+interface Bookmark {
+  id: string
+  label: string
+  url: string
+  icon: string
+  category: 'favoris' | 'projets' | 'réseaux'
+}
+```
 
-     Canvas
+### Fichiers à créer
 
-     - Blanc par défaut, 100% de la zone disponible
-     - Curseur adapté au tool actif
-     - Sauvegarde PNG via canvas.toDataURL() + <a download>
+- `src/components/apps/IEApp.tsx`
+- `src/components/apps/IEApp.module.css`
+- `src/data/bookmarks.ts`
 
-     ---
-     Structure du composant
+### Fichiers à modifier
 
-     // État
-     const canvasRef = useRef<HTMLCanvasElement>(null)
-     const [tool, setTool] = useState<Tool>('pen')
-     const [fgColor, setFgColor] = useState('#000000')
-     const [bgColor, setBgColor] = useState('#ffffff')
-     const [brushSize, setBrushSize] = useState(3)
-     const [isDrawing, setIsDrawing] = useState(false)
-     const startPos = useRef({ x: 0, y: 0 })
-     const snapshot = useRef<ImageData | null>(null) // pour preview rect/ligne
+1. `src/data/filesystem.ts` — ajouter `'ie'` à `AppType`
+2. `src/store/windowStore.ts` — `DEFAULT_SIZES` (700×500), `APP_TITLES`, `APP_ICONS`
+3. `src/data/icons.ts` — icône IE (image Win95 ou 🌐)
+4. `src/App.tsx` — lazy import + case
+5. `src/components/Desktop/Desktop.tsx` — `DESKTOP_ICONS`
+6. `src/components/Taskbar/StartMenu.tsx` — item Start Menu
 
-     // Handlers
-     onMouseDown → start drawing, save snapshot pour formes
-     onMouseMove → draw (pen/eraser) ou preview (rect/ligne)
-     onMouseUp   → commit shape, stop drawing
+---
 
-     // Flood fill (remplissage) : BFS sur ImageData
+## 6. Solitaire
 
-     ---
-     Intégration
+**Concept** : `sol.exe` — version jouable du Klondike Solitaire.
 
-     Même pattern que MailApp :
-     - Lazy import dans App.tsx
-     - Case 'paint' dans le switch
-     - Taille par défaut : 800 × 580
-     - Position desktop : col 2, row 1 (ou colonne libre)
+**Complexité** : Moyenne-haute (logique de jeu, drag & drop des cartes).
 
-     ---
-     Vérification
+**UX** : 7 colonnes tableau, 4 fondations, talon, retournement de cartes. Drag & drop natif HTML5 ou via pointeur events.
 
-     1. Lancer pnpm dev
-     2. Double-cliquer l'icône Paint sur le bureau → fenêtre s'ouvre
-     3. Dessiner avec le crayon → trait visible
-     4. Changer couleur → couleur appliquée
-     5. Gomme → efface
-     6. Remplissage → flood fill fonctionne
-     7. Rectangle → tracé avec preview
-     8. Bouton "Enregistrer" → télécharge un fichier PNG
-     9. App dans Start Menu → Programmes → Paint
+### Fichiers à créer
+
+- `src/components/apps/Solitaire.tsx`
+- `src/components/apps/Solitaire.module.css`
+
+### Fichiers à modifier
+
+1. `src/data/filesystem.ts` — ajouter `'solitaire'` à `AppType`
+2. `src/store/windowStore.ts` — `DEFAULT_SIZES` (640×480), `APP_TITLES`, `APP_ICONS`
+3. `src/data/icons.ts` — icône 🃏
+4. `src/App.tsx` — lazy import + case
+5. `src/components/Desktop/Desktop.tsx` — `DESKTOP_ICONS`
+6. `src/components/Taskbar/StartMenu.tsx` — item `Jeux`
+
+---
+
+## Checklist commune (tous modules)
+
+Pour chaque module, les **8 étapes** sont identiques :
+
+1. `src/components/apps/NomApp.tsx` + `NomApp.module.css`
+2. `src/data/filesystem.ts` → union `AppType`
+3. `src/store/windowStore.ts` → `DEFAULT_SIZES` + `APP_TITLES` + `APP_ICONS`
+4. `src/data/icons.ts` → `ICON_MAP`
+5. `src/App.tsx` → lazy import + case dans `AppContent`
+6. `src/components/Desktop/Desktop.tsx` → `DESKTOP_ICONS`
+7. `src/components/Taskbar/StartMenu.tsx` → item Start Menu
+8. `src/data/filesystem.ts` → `VirtualFile` *(optionnel, pour File Explorer)*
+
+---
+
+## Priorité suggérée
+
+| # | Module | Effort | Impact |
+|---|--------|--------|--------|
+| 1 | Calculatrice | Très faible | Moyen |
+| 2 | Lecteur multimédia | Moyen | Élevé |
+| 3 | Internet Explorer | Moyen | Moyen |
+| 4 | Solitaire | Élevé | Moyen |
+
+---
+
+## Vérification (par module)
+
+1. `pnpm dev` → icône visible sur le bureau
+2. Double-clic → fenêtre s'ouvre avec titre et icône corrects
+3. Start Menu → item présent dans le bon sous-menu
+4. File Explorer → visible si `VirtualFile` ajouté
+5. `pnpm tsc --noEmit` → aucune erreur TypeScript

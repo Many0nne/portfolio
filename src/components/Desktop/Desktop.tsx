@@ -36,6 +36,7 @@ const DESKTOP_ICONS: DesktopIconDef[] = [
   { id: 'secret-folder', label: 'Terry Files', icon: 'folder', image: '/img/Windows_95_FOLDER.png', app: 'file-explorer', props: { folderId: 'TerryFiles' }, defaultPos: { col: 1, row: 1 } },
   { id: 'mail', label: 'Messagerie', icon: 'mail', image: '/img/Mailnews12_32x32_4.png', app: 'mail', defaultPos: { col: 1, row: 2 } },
   { id: 'paint', label: 'Paint', icon: 'paint', image: '/img/Settings_32x32_4.png', app: 'paint', defaultPos: { col: 2, row: 0 } },
+  { id: 'media-player', label: 'Lecteur Multimédia', icon: 'media-player', image: '/icon/w98_media_player.ico', app: 'media-player', defaultPos: { col: 2, row: 1 } },
 ]
 
 function gridToPixel(col: number, row: number) {

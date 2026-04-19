@@ -11,6 +11,7 @@ export const ICON_MAP: Record<string, string> = {
   network: '/img/web_file_0.png',
   mail: '/img/FileText_32x32_4.png',
   paint: '/img/Mspaint_32x32_4.png',
+  'media-player': '/icon/w98_media_player.ico',
   eraser: '/img/Eraser.png',
   pen: '/img/pifmgr_19.ico',
   fill: '/img/Mspaint_32x32_4.png',

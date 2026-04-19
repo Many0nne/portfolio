@@ -1,0 +1,260 @@
+.player {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 6px 8px;
+  background: #1a1a1a;
+  height: 100%;
+  box-sizing: border-box;
+  font-family: 'Courier New', monospace;
+}
+
+/* LCD Display */
+.display {
+  background: #000;
+  border: 2px inset #555;
+  padding: 4px 6px;
+  border-radius: 1px;
+}
+
+.trackLine {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+}
+
+.trackTitle {
+  color: #00e000;
+  font-size: 11px;
+  font-weight: bold;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 0 4px #00e000;
+}
+
+.timeDisplay {
+  color: #00ff00;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+  text-shadow: 0 0 6px #00ff00;
+  flex-shrink: 0;
+}
+
+.artistLine {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1px;
+}
+
+.artistName {
+  color: #009000;
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.errorText {
+  color: #ff4444;
+  font-size: 10px;
+}
+
+.totalTime {
+  color: #006000;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+/* Progress bar */
+.progressRow {
+  position: relative;
+  height: 8px;
+}
+
+.progressBar {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  z-index: 2;
+  margin: 0;
+}
+
+.progressBar::-webkit-slider-runnable-track {
+  background: #2a2a2a;
+  height: 6px;
+  border: 1px inset #444;
+}
+
+.progressBar::-webkit-slider-thumb {
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  background: #888;
+  border: 1px outset #aaa;
+  border-radius: 0;
+  cursor: pointer;
+  margin-top: -2px;
+}
+
+.progressBar::-moz-range-track {
+  background: #2a2a2a;
+  height: 6px;
+  border: 1px inset #444;
+}
+
+.progressBar::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  background: #888;
+  border: 1px outset #aaa;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.progressFill {
+  position: absolute;
+  top: 1px;
+  left: 0;
+  height: 6px;
+  background: linear-gradient(90deg, #005500, #00aa00);
+  pointer-events: none;
+  z-index: 1;
+  transition: width 0.1s linear;
+}
+
+/* Visualizer */
+.visualizer {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 20px;
+  padding: 0 1px;
+}
+
+.bar {
+  flex: 1;
+  background: #003300;
+  height: 2px;
+  border-radius: 0;
+  transition: height 0.1s;
+}
+
+@keyframes barPulse {
+  0%, 100% { height: 2px; background: #003300; }
+  50% { height: var(--bar-h, 10px); background: #00cc00; }
+}
+
+.barActive {
+  animation: barPulse 0.6s ease-in-out infinite;
+}
+
+.barActive:nth-child(odd) {
+  --bar-h: 14px;
+  animation-duration: 0.5s;
+}
+
+.barActive:nth-child(3n) {
+  --bar-h: 18px;
+  animation-duration: 0.4s;
+}
+
+.barActive:nth-child(5n) {
+  --bar-h: 8px;
+  animation-duration: 0.7s;
+}
+
+.barActive:nth-child(7n) {
+  --bar-h: 16px;
+  animation-duration: 0.35s;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.transportButtons {
+  display: flex;
+  gap: 3px;
+}
+
+.btn {
+  background: #333;
+  border: 2px outset #666;
+  color: #ccc;
+  font-size: 11px;
+  width: 28px;
+  height: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+
+.btn:hover {
+  background: #444;
+  color: #fff;
+}
+
+.btn:active {
+  border-style: inset;
+  background: #222;
+}
+
+.btnPlay {
+  width: 34px;
+  background: #2a2a2a;
+  color: #00cc00;
+}
+
+.btnPlay:hover {
+  color: #00ff00;
+}
+
+/* Playlist indicator */
+.playlist {
+  display: flex;
+  gap: 2px;
+  border-top: 1px solid #333;
+  padding-top: 4px;
+}
+
+.plItem {
+  background: #2a2a2a;
+  border: 1px outset #555;
+  color: #666;
+  font-size: 9px;
+  width: 18px;
+  height: 14px;
+  cursor: pointer;
+  padding: 0;
+  font-family: 'Courier New', monospace;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plItem:hover {
+  color: #aaa;
+  background: #333;
+}
+
+.plItemActive {
+  background: #004400;
+  border-style: inset;
+  color: #00cc00;
+}

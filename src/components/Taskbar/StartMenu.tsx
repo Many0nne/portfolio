@@ -59,13 +59,13 @@ export function StartMenu({ onClose, onShutdown }: StartMenuProps) {
               </div>
               <div className={styles.menuItem} onClick={() => open('mail')}>
                 <span className={styles.menuItemIcon}>
-                  <AppIcon name="mail" size={16} className={styles.menuItemIconImg} />
+                  <img className={styles.menuItemIconImg} src="/img/Mailnews12_32x32_4.png" alt="" />
                 </span>
                 Messagerie
               </div>
               <div className={styles.menuItem} onClick={() => open('paint')}>
                 <span className={styles.menuItemIcon}>
-                  <AppIcon name="paint" size={16} className={styles.menuItemIconImg} />
+                  <img className={styles.menuItemIconImg} src="/img/Settings_32x32_4.png" alt="" />
                 </span>
                 Paint
               </div>

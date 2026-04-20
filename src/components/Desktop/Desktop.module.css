@@ -21,11 +21,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   padding: 4px;
   cursor: pointer;
   border: 1px solid transparent;
-  width: 72px;
+  box-sizing: border-box;
   text-align: center;
 }
 
@@ -110,6 +111,53 @@
 
 .contextSubmenuTrigger:hover .contextSubmenu {
   display: block;
+}
+
+.tooSmallOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+.tooSmallDialog {
+  background: var(--win95-surface);
+  border: var(--win95-border-raised);
+  border-color: var(--win95-border-raised-color);
+  box-shadow: var(--win95-shadow-popup);
+  width: 360px;
+  max-width: 90vw;
+}
+
+.tooSmallTitleBar {
+  background: var(--win95-blue);
+  color: var(--win95-text-inv);
+  padding: 3px 6px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.tooSmallBody {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+}
+
+.tooSmallIcon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.tooSmallBody p {
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+  color: var(--win95-text);
 }
 
 .contextSeparator {

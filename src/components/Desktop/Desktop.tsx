@@ -5,11 +5,16 @@ import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { useSound } from '../../hooks/useSound'
 import type { AppType } from '../../data/filesystem'
 
-// Grid constants
-const GRID_CELL_W = 80
-const GRID_CELL_H = 90
-const GRID_OFFSET_X = 8
-const GRID_OFFSET_Y = 8
+const TASKBAR_H = 40
+const MIN_CELL_W = 80
+const MIN_CELL_H = 90
+
+interface GridMetrics {
+  numCols: number
+  numRows: number
+  cellW: number
+  cellH: number
+}
 
 interface GridPos {
   col: number
@@ -39,51 +44,81 @@ const DESKTOP_ICONS: DesktopIconDef[] = [
   { id: 'media-player', label: 'Lecteur Multimédia', icon: 'media-player', image: '/icon/w98_media_player.ico', app: 'media-player', defaultPos: { col: 2, row: 1 } },
 ]
 
-function gridToPixel(col: number, row: number) {
+function computeMetrics(): GridMetrics {
+  const numCols = Math.max(1, Math.floor(window.innerWidth / MIN_CELL_W))
+  const numRows = Math.max(1, Math.floor((window.innerHeight - TASKBAR_H) / MIN_CELL_H))
   return {
-    x: GRID_OFFSET_X + col * GRID_CELL_W,
-    y: GRID_OFFSET_Y + row * GRID_CELL_H,
+    numCols,
+    numRows,
+    cellW: window.innerWidth / numCols,
+    cellH: (window.innerHeight - TASKBAR_H) / numRows,
   }
 }
 
-function pixelToGrid(x: number, y: number): GridPos {
+function gridToPixel(col: number, row: number, m: GridMetrics) {
+  return { x: col * m.cellW, y: row * m.cellH }
+}
+
+function pixelToGrid(x: number, y: number, m: GridMetrics): GridPos {
   return {
-    col: Math.round((x - GRID_OFFSET_X) / GRID_CELL_W),
-    row: Math.round((y - GRID_OFFSET_Y) / GRID_CELL_H),
+    col: Math.round(x / m.cellW),
+    row: Math.round(y / m.cellH),
   }
 }
 
-function getGridBounds() {
-  const maxCols = Math.floor((window.innerWidth - GRID_OFFSET_X) / GRID_CELL_W) - 1
-  const maxRows = Math.floor((window.innerHeight - 40 - GRID_OFFSET_Y) / GRID_CELL_H) - 1
-  return { maxCols, maxRows }
-}
-
-function clampToGrid(pos: GridPos): GridPos {
-  const { maxCols, maxRows } = getGridBounds()
+function clampToGrid(pos: GridPos, m: GridMetrics): GridPos {
   return {
-    col: Math.max(0, Math.min(pos.col, maxCols)),
-    row: Math.max(0, Math.min(pos.row, maxRows)),
+    col: Math.max(0, Math.min(pos.col, m.numCols - 1)),
+    row: Math.max(0, Math.min(pos.row, m.numRows - 1)),
   }
 }
 
-function findFreeCell(target: GridPos, occupied: Set<string>): GridPos {
+function resolveCollisions(positions: Record<string, GridPos>, m: GridMetrics): { result: Record<string, GridPos>; changed: boolean } {
+  const result: Record<string, GridPos> = {}
+  const occupied = new Set<string>()
+  let changed = false
+
+  const getPos = (icon: DesktopIconDef) => {
+    const raw = positions[icon.id] && typeof positions[icon.id]?.col === 'number'
+      ? positions[icon.id]
+      : icon.defaultPos
+    return clampToGrid(raw, m)
+  }
+
+  // Priority: column-major order (col asc, then row asc)
+  const sorted = [...DESKTOP_ICONS].sort((a, b) => {
+    const pa = getPos(a)
+    const pb = getPos(b)
+    return pa.col !== pb.col ? pa.col - pb.col : pa.row - pb.row
+  })
+
+  sorted.forEach((icon) => {
+    const raw = positions[icon.id] && typeof positions[icon.id]?.col === 'number'
+      ? positions[icon.id]
+      : icon.defaultPos
+    const clamped = clampToGrid(raw, m)
+    const free = findFreeCell(clamped, occupied, m)
+    result[icon.id] = free
+    occupied.add(`${free.col},${free.row}`)
+    if (free.col !== raw.col || free.row !== raw.row) changed = true
+  })
+
+  return { result, changed }
+}
+
+function findFreeCell(target: GridPos, occupied: Set<string>, m: GridMetrics): GridPos {
   const key = (c: number, r: number) => `${c},${r}`
-  const clamped = clampToGrid(target)
-
+  const clamped = clampToGrid(target, m)
   if (!occupied.has(key(clamped.col, clamped.row))) return clamped
-
-  // Search in expanding rings for the nearest free cell
   for (let radius = 1; radius <= 5; radius++) {
     for (let dc = -radius; dc <= radius; dc++) {
       for (let dr = -radius; dr <= radius; dr++) {
         if (Math.abs(dc) !== radius && Math.abs(dr) !== radius) continue
-        const candidate = clampToGrid({ col: clamped.col + dc, row: clamped.row + dr })
+        const candidate = clampToGrid({ col: clamped.col + dc, row: clamped.row + dr }, m)
         if (!occupied.has(key(candidate.col, candidate.row))) return candidate
       }
     }
   }
-
   return clamped
 }
 
@@ -136,20 +171,55 @@ export function Desktop() {
     'win95-icon-positions-v2',
     {}
   )
+  const [metrics, setMetrics] = useState<GridMetrics>(computeMetrics)
+  const metricsRef = useRef(metrics)
+  const [tooSmall, setTooSmall] = useState(() => {
+    const m = computeMetrics()
+    return m.numCols * m.numRows < DESKTOP_ICONS.length
+  })
   const [selectedIcon, setSelectedIcon] = useState<string | null>(null)
   const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null)
-  // Live pixel position during drag for visual feedback
   const [draggingPixel, setDraggingPixel] = useState<{ id: string; x: number; y: number } | null>(null)
   const lastClick = useRef<{ id: string; time: number } | null>(null)
   const dragStart = useRef<{ mx: number; my: number; ix: number; iy: number; iconId: string; pointerId: number } | null>(null)
   const lastPointer = useRef<{ x: number; y: number } | null>(null)
 
-  // Play startup sound once
+  useEffect(() => {
+    metricsRef.current = metrics
+  }, [metrics])
+
+  useEffect(() => {
+    setIconPositions((prev) => {
+      const { result, changed } = resolveCollisions(prev, metricsRef.current)
+      return changed ? result : prev
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   useEffect(() => {
     play('startup')
   }, [play])
 
-  // Close context menu on click
+  useEffect(() => {
+    const handleResize = () => {
+      const m = computeMetrics()
+      if (m.numCols * m.numRows < DESKTOP_ICONS.length) {
+        setTooSmall(true)
+        return
+      }
+      setTooSmall(false)
+      setMetrics(m)
+      metricsRef.current = m
+      setIconPositions((prev) => {
+        const { result, changed } = resolveCollisions(prev, m)
+        return changed ? result : prev
+      })
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [setIconPositions])
+
   useEffect(() => {
     const handler = () => setContextMenu(null)
     document.addEventListener('click', handler)
@@ -158,10 +228,7 @@ export function Desktop() {
 
   const getGridPos = (id: string, def: GridPos): GridPos => {
     const stored = iconPositions[id]
-    // Validate stored value has grid format
-    if (stored && typeof stored.col === 'number' && typeof stored.row === 'number') {
-      return stored
-    }
+    if (stored && typeof stored.col === 'number' && typeof stored.row === 'number') return stored
     return def
   }
 
@@ -172,17 +239,13 @@ export function Desktop() {
       setSelectedIcon(icon.id)
 
       const sourceEl = e.currentTarget
+      try { sourceEl.setPointerCapture(e.pointerId) } catch { /* no-op */ }
 
-      try {
-        sourceEl.setPointerCapture(e.pointerId)
-      } catch {
-        // No-op: some browsers can throw if capture cannot be set.
-      }
-
+      const m = metricsRef.current
       const gridPos = iconPositions[icon.id] && typeof iconPositions[icon.id].col === 'number'
         ? iconPositions[icon.id]
         : icon.defaultPos
-      const pixel = gridToPixel(gridPos.col, gridPos.row)
+      const pixel = gridToPixel(gridPos.col, gridPos.row, m)
 
       dragStart.current = { mx: e.clientX, my: e.clientY, ix: pixel.x, iy: pixel.y, iconId: icon.id, pointerId: e.pointerId }
       lastPointer.current = { x: e.clientX, y: e.clientY }
@@ -192,13 +255,8 @@ export function Desktop() {
         window.removeEventListener('pointerup', onUp)
         window.removeEventListener('pointercancel', onCancel)
         window.removeEventListener('blur', onWindowBlur)
-
         if (sourceEl.hasPointerCapture(e.pointerId)) {
-          try {
-            sourceEl.releasePointerCapture(e.pointerId)
-          } catch {
-            // No-op when capture is already released.
-          }
+          try { sourceEl.releasePointerCapture(e.pointerId) } catch { /* no-op */ }
         }
       }
 
@@ -214,13 +272,12 @@ export function Desktop() {
         const didDrag = Math.abs(dx) >= 4 || Math.abs(dy) >= 4
 
         if (didDrag) {
-          // Snap to grid on release
           const rawX = Math.max(0, dragStart.current.ix + dx)
           const rawY = Math.max(0, dragStart.current.iy + dy)
-          const targetCell = pixelToGrid(rawX, rawY)
+          const currentMetrics = metricsRef.current
+          const targetCell = pixelToGrid(rawX, rawY, currentMetrics)
 
           setIconPositions((prev) => {
-            // Build occupied set (excluding the dragged icon)
             const occupied = new Set<string>()
             DESKTOP_ICONS.forEach((ic) => {
               if (ic.id === icon.id) return
@@ -229,7 +286,7 @@ export function Desktop() {
                 : ic.defaultPos
               occupied.add(`${pos.col},${pos.row}`)
             })
-            const freeCell = findFreeCell(targetCell, occupied)
+            const freeCell = findFreeCell(targetCell, occupied, currentMetrics)
             return { ...prev, [icon.id]: freeCell }
           })
         }
@@ -280,9 +337,7 @@ export function Desktop() {
       e.stopPropagation()
       const now = Date.now()
       const last = lastClick.current
-
       if (last && last.id === icon.id && now - last.time < 500) {
-        // Double click
         play('open')
         openWindow(icon.app, icon.props)
         lastClick.current = null
@@ -293,9 +348,7 @@ export function Desktop() {
     [openWindow, play]
   )
 
-  const handleDesktopClick = useCallback(() => {
-    setSelectedIcon(null)
-  }, [])
+  const handleDesktopClick = useCallback(() => setSelectedIcon(null), [])
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -320,7 +373,13 @@ export function Desktop() {
       onClick={handleDesktopClick}
       onContextMenu={handleContextMenu}
     >
-      <div className={styles.iconsGrid}>
+      <div
+        className={styles.iconsGrid}
+        style={{
+          '--cell-w': `${metrics.cellW}px`,
+          '--cell-h': `${metrics.cellH}px`,
+        } as React.CSSProperties}
+      >
         {DESKTOP_ICONS.map((icon) => {
           const isDragging = draggingPixel?.id === icon.id
           let left: number
@@ -331,7 +390,7 @@ export function Desktop() {
             top = draggingPixel.y
           } else {
             const pos = getGridPos(icon.id, icon.defaultPos)
-            const pixel = gridToPixel(pos.col, pos.row)
+            const pixel = gridToPixel(pos.col, pos.row, metrics)
             left = pixel.x
             top = pixel.y
           }
@@ -340,7 +399,7 @@ export function Desktop() {
             <div
               key={icon.id}
               className={`${styles.icon} ${selectedIcon === icon.id ? styles.selected : ''} ${isDragging ? styles.dragging : ''}`}
-              style={{ left, top }}
+              style={{ left, top, width: metrics.cellW, height: metrics.cellH }}
               onPointerDown={(e) => handleIconPointerDown(e, icon)}
               onClick={(e) => handleIconClick(e, icon)}
               onDragStart={(e) => e.preventDefault()}
@@ -356,6 +415,23 @@ export function Desktop() {
           )
         })}
       </div>
+
+      {tooSmall && (
+        <div className={styles.tooSmallOverlay}>
+          <div className={styles.tooSmallDialog}>
+            <div className={styles.tooSmallTitleBar}>
+              <span>Résolution insuffisante</span>
+            </div>
+            <div className={styles.tooSmallBody}>
+              <img src="/img/Windows_95_FOLDER.png" alt="" className={styles.tooSmallIcon} />
+              <p>
+                La fenêtre est trop petite pour afficher toutes les icônes du bureau ({DESKTOP_ICONS.length} icônes requises).
+                Agrandissez la fenêtre pour continuer.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {contextMenu && (
         <div

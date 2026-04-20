@@ -1,73 +1,58 @@
-# React + TypeScript + Vite
+# Portfolio Windows 95
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interactive portfolio presented as a Windows 95 desktop. The app simulates a retro environment with a boot screen, desktop, taskbar, resizable windows, and several internal applications.
 
-Currently, two official plugins are available:
+## Preview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+![Portfolio preview](public/img/preview.png)
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Full Windows 95 desktop with draggable icons and background themes.
+- Application windows managed by a central store, with minimize, maximize, and layering behavior.
+- Simulated startup and shutdown through a boot screen and the taskbar.
+- File explorer for browsing projects and virtual folders.
+- Built-in applications: projects, skills, resume, contact, about, mail, Paint, media player, Minesweeper, and a film gallery.
+- Local persistence for certain states such as icon positions and the desktop theme.
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- React 19
+- TypeScript
+- Vite
+- Zustand
+- 98.css
+- Howler
+- Motion
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Installation
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+pnpm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Development
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+pnpm dev
 ```
+
+Then open the app locally with Vite.
+
+## Available Scripts
+
+```bash
+pnpm dev
+pnpm build
+pnpm lint
+pnpm preview
+```
+
+## Main Structure
+
+- `src/App.tsx`: orchestration of the boot screen, desktop, and windows.
+- `src/components/Desktop/`: desktop, icons, and theme management.
+- `src/components/Taskbar/`: taskbar and Start menu.
+- `src/components/apps/`: portfolio applications.
+- `src/data/`: virtual content, projects, mails, skills, and icons.
+- `src/store/windowStore.ts`: open window state.

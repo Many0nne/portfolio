@@ -1,23 +1,24 @@
 .container {
   display: flex;
   flex-direction: column;
+  width: 100%;
   height: 100%;
-  background: white;
+  background: var(--text-app-content-bg);
 }
 
 .menuBar {
   display: flex;
   gap: 0;
-  background: var(--win95-surface);
+  padding: var(--text-app-menu-bar-padding);
   border-bottom: 1px solid var(--win95-dark);
-  padding: 2px 0;
+  background: var(--win95-surface);
   flex-shrink: 0;
 }
 
 .menu {
   position: relative;
-  padding: 2px 8px;
-  font-size: 12px;
+  padding: var(--text-app-menu-padding);
+  font-size: var(--text-app-menu-font-size);
   cursor: pointer;
   user-select: none;
 }
@@ -59,20 +60,12 @@
 .content {
   flex: 1;
   overflow: auto;
-  padding: 12px 16px;
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-  line-height: 1.5;
-  color: #000;
   margin: 0;
+  padding: var(--text-app-content-padding);
+  background: var(--text-app-content-bg);
+  font-family: var(--text-app-font-family);
+  font-size: var(--text-app-font-size);
+  line-height: var(--text-app-line-height);
+  color: #000;
   white-space: pre-wrap;
-}
-
-@media print {
-  .menuBar {
-    display: none;
-  }
-  .container {
-    position: static;
-  }
 }

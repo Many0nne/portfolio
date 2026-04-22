@@ -1,6 +1,7 @@
-import styles from './ResumeApp.module.css'
+import type { TextEditorDocument } from './types'
 
-const resumeText = `Terry BARILLON
+export const resumeDocument: TextEditorDocument = {
+  content: `Terry BARILLON
 Full-Stack Developer · TypeScript · React · Vue.JS
 📧 barillon.terry.85@gmail.com
 🔗 github.com/Many0nne
@@ -124,37 +125,6 @@ Sept 2025
 EPSI - Nantes
 
 ════════════════════════════════════════════════════
-`
-
-function downloadResume() {
-  const blob = new Blob([resumeText], { type: 'text/plain;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-
-  link.href = url
-  link.download = 'Terry_BARILLON_CV.txt'
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  URL.revokeObjectURL(url)
-}
-
-export function ResumeApp() {
-  return (
-    <div className={styles.container}>
-      <div className={styles.menuBar}>
-        <div className={styles.menu}>
-          <span>Fichier</span>
-          <div className={styles.dropdown}>
-            <div className={styles.dropdownItem} onClick={downloadResume}>Télécharger…</div>
-          </div>
-        </div>
-        <div className={styles.menu}><span>Édition</span></div>
-        <div className={styles.menu}><span>Aide</span></div>
-      </div>
-      <pre className={styles.content}>
-{resumeText}
-      </pre>
-    </div>
-  )
+`,
+  downloadFileName: 'Terry_BARILLON_CV.txt',
 }

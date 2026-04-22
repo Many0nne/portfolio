@@ -12,17 +12,11 @@ import type { AppType } from './data/filesystem'
 const ProjectViewer = lazy(() =>
   import('./components/apps/ProjectViewer').then((m) => ({ default: m.ProjectViewer }))
 )
-const SkillsApp = lazy(() =>
-  import('./components/apps/SkillsApp').then((m) => ({ default: m.SkillsApp }))
+const TextEditorApp = lazy(() =>
+  import('./components/apps/TextEditorApp').then((m) => ({ default: m.TextEditorApp }))
 )
-const ResumeApp = lazy(() =>
-  import('./components/apps/ResumeApp').then((m) => ({ default: m.ResumeApp }))
-)
-const NotesApp = lazy(() =>
-  import('./components/apps/NotesApp').then((m) => ({ default: m.NotesApp }))
-)
-const ContactApp = lazy(() =>
-  import('./components/apps/ContactApp').then((m) => ({ default: m.ContactApp }))
+const TerminalApp = lazy(() =>
+  import('./components/apps/TerminalApp').then((m) => ({ default: m.TerminalApp }))
 )
 const AboutDialog = lazy(() =>
   import('./components/apps/AboutDialog').then((m) => ({ default: m.AboutDialog }))
@@ -57,13 +51,13 @@ function AppContent({ app, props, windowId }: { app: AppType; props?: Record<str
     case 'project-viewer':
       return <ProjectViewer projectId={props?.projectId as string | undefined} />
     case 'skills':
-      return <SkillsApp />
+      return <TextEditorApp variant="skills" />
     case 'resume':
-      return <ResumeApp />
+      return <TextEditorApp variant="resume" />
     case 'notes':
-      return <NotesApp />
-    case 'contact':
-      return <ContactApp />
+      return <TextEditorApp variant="notes" />
+    case 'terminal':
+      return <TerminalApp />
     case 'about':
       return <AboutDialog />
     case 'file-explorer':

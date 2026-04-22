@@ -4,7 +4,8 @@ import { useWindowStore } from '../../store/windowStore'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { useSound } from '../../hooks/useSound'
 import { useCasinoStore } from '../../store/casinoStore'
-import type { AppType } from '../../data/filesystem'
+import { desktopShortcuts } from '../../data/filesystem'
+import type { DesktopShortcut } from '../../data/filesystem'
 
 const TASKBAR_H = 40
 const MIN_CELL_W = 80
@@ -21,35 +22,6 @@ interface GridPos {
   col: number
   row: number
 }
-
-interface DesktopIconDef {
-  id: string
-  label: string
-  icon: string
-  image?: string
-  app: AppType
-  props?: Record<string, unknown>
-  defaultPos: GridPos
-}
-
-const BASE_DESKTOP_ICONS: DesktopIconDef[] = [
-  { id: 'my-projects', label: 'Mes Projets', icon: 'folder', image: '/img/Windows_95_FOLDER.png', app: 'file-explorer', props: { folderId: 'projects' }, defaultPos: { col: 0, row: 0 } },
-  { id: 'skills', label: 'Compétences', icon: 'control', image: '/img/Settings_32x32_4.png', app: 'skills', defaultPos: { col: 0, row: 1 } },
-  { id: 'resume', label: 'CV.txt', icon: 'notepad', image: '/img/FileText_32x32_4.png', app: 'resume', defaultPos: { col: 0, row: 2 } },
-  { id: 'notes', label: 'Notes.txt', icon: 'notepad', image: '/img/FileText_32x32_4.png', app: 'notes', defaultPos: { col: 2, row: 2 } },
-  { id: 'contact', label: 'Contact', icon: 'cmd', image: '/img/Shell323_32x32_4.png', app: 'contact', defaultPos: { col: 0, row: 3 } },
-  { id: 'about', label: 'À propos', icon: 'info', image: '/img/Awfxex32Info_32x32_4.png', app: 'about', defaultPos: { col: 0, row: 4 } },
-  { id: 'minesweeper', label: 'Démineur', icon: 'minesweeper', image: '/img/95minesweeper.ico', app: 'minesweeper', defaultPos: { col: 1, row: 0 } },
-  { id: 'secret-folder', label: 'Terry Files', icon: 'folder', image: '/img/Windows_95_FOLDER.png', app: 'file-explorer', props: { folderId: 'TerryFiles' }, defaultPos: { col: 1, row: 1 } },
-  { id: 'mail', label: 'Messagerie', icon: 'mail', image: '/img/Mailnews12_32x32_4.png', app: 'mail', defaultPos: { col: 1, row: 2 } },
-  { id: 'paint', label: 'Paint', icon: 'paint', image: '/img/Settings_32x32_4.png', app: 'paint', defaultPos: { col: 2, row: 0 } },
-  { id: 'media-player', label: 'Lecteur Multimédia', icon: 'media-player', image: '/icon/w98_media_player.ico', app: 'media-player', defaultPos: { col: 2, row: 1 } },
-]
-
-const CASINO_DESKTOP_ICONS: DesktopIconDef[] = [
-  { id: 'casino', label: 'Casino', icon: '🎰', image: '/img/7.png', app: 'casino', defaultPos: { col: 2, row: 2 } },
-  { id: 'bank', label: 'Banque', icon: '🏦', image: '/img/icons8-banque-32.png', app: 'bank', defaultPos: { col: 2, row: 3 } },
-]
 
 function computeMetrics(): GridMetrics {
   const numCols = Math.max(1, Math.floor(window.innerWidth / MIN_CELL_W))
@@ -80,12 +52,12 @@ function clampToGrid(pos: GridPos, m: GridMetrics): GridPos {
   }
 }
 
-function resolveCollisions(positions: Record<string, GridPos>, m: GridMetrics, icons: DesktopIconDef[]): { result: Record<string, GridPos>; changed: boolean } {
+function resolveCollisions(positions: Record<string, GridPos>, m: GridMetrics, icons: DesktopShortcut[]): { result: Record<string, GridPos>; changed: boolean } {
   const result: Record<string, GridPos> = {}
   const occupied = new Set<string>()
   let changed = false
 
-  const getPos = (icon: DesktopIconDef) => {
+  const getPos = (icon: DesktopShortcut) => {
     const raw = positions[icon.id] && typeof positions[icon.id]?.col === 'number'
       ? positions[icon.id]
       : icon.defaultPos
@@ -128,6 +100,8 @@ function findFreeCell(target: GridPos, occupied: Set<string>, m: GridMetrics): G
   }
   return clamped
 }
+
+const MIN_VISIBLE_SHORTCUTS = desktopShortcuts.filter((shortcut) => !shortcut.requiresCasinoUnlock).length
 
 interface ContextMenu {
   x: number
@@ -183,7 +157,7 @@ export function Desktop() {
   const metricsRef = useRef(metrics)
 
   const activeIcons = useMemo(
-    () => (unlocked ? [...BASE_DESKTOP_ICONS, ...CASINO_DESKTOP_ICONS] : BASE_DESKTOP_ICONS),
+    () => desktopShortcuts.filter((shortcut) => !shortcut.requiresCasinoUnlock || unlocked),
     [unlocked]
   )
   const activeIconsRef = useRef(activeIcons)
@@ -191,7 +165,7 @@ export function Desktop() {
 
   const [tooSmall, setTooSmall] = useState(() => {
     const m = computeMetrics()
-    return m.numCols * m.numRows < BASE_DESKTOP_ICONS.length
+    return m.numCols * m.numRows < MIN_VISIBLE_SHORTCUTS
   })
   const [selectedIcon, setSelectedIcon] = useState<string | null>(null)
   const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null)
@@ -248,7 +222,7 @@ export function Desktop() {
   }
 
   const handleIconPointerDown = useCallback(
-    (e: React.PointerEvent<HTMLDivElement>, icon: DesktopIconDef) => {
+    (e: React.PointerEvent<HTMLDivElement>, icon: DesktopShortcut) => {
       e.preventDefault()
       e.stopPropagation()
       setSelectedIcon(icon.id)
@@ -348,7 +322,7 @@ export function Desktop() {
   )
 
   const handleIconClick = useCallback(
-    (e: React.MouseEvent, icon: DesktopIconDef) => {
+    (e: React.MouseEvent, icon: DesktopShortcut) => {
       e.stopPropagation()
       if (pledgedApps.includes(icon.app)) return
       const now = Date.now()

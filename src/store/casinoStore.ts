@@ -6,7 +6,6 @@ export const PLEDGEABLE_APPS: { type: AppType; label: string }[] = [
   { type: 'file-explorer', label: 'Explorateur' },
   { type: 'skills', label: 'Compétences' },
   { type: 'resume', label: 'CV.txt' },
-  { type: 'contact', label: 'Terminal' },
   { type: 'about', label: 'À propos' },
   { type: 'minesweeper', label: 'Démineur' },
   { type: 'mail', label: 'Messagerie' },

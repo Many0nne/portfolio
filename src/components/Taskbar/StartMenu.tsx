@@ -57,11 +57,11 @@ export function StartMenu({ onClose, onShutdown }: StartMenuProps) {
                 </span>
                 Notes
               </div>
-              <div className={styles.menuItem} onClick={() => open('contact')}>
+              <div className={styles.menuItem} onClick={() => open('terminal')}>
                 <span className={styles.menuItemIcon}>
                   <AppIcon name="cmd" size={16} className={styles.menuItemIconImg} />
                 </span>
-                Terminal (Contact)
+                Terminal
               </div>
               <div className={styles.menuItem} onClick={() => open('mail')}>
                 <span className={styles.menuItemIcon}>

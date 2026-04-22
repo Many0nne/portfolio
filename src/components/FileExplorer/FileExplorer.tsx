@@ -5,6 +5,7 @@ import type { VirtualFile } from '../../data/filesystem'
 import { useWindowStore } from '../../store/windowStore'
 import { useSound } from '../../hooks/useSound'
 import { ICON_MAP } from '../../data/icons'
+import { findFolderPathById, getPathString } from '../../utils/fsUtils'
 
 const SECRET_PIN = '95'
 
@@ -14,10 +15,11 @@ interface PinState {
   target: VirtualFile
   value: string
   error: boolean
+  mode: 'replace' | 'push'
 }
 
 export function FileExplorer({ initialFolderId }: { initialFolderId?: string } = {}) {
-  const [selectedFolder, setSelectedFolder] = useState<VirtualFile | null>(null)
+  const [folderStack, setFolderStack] = useState<VirtualFile[]>([])
   const [viewMode, setViewMode] = useState<ViewMode>('icons')
   const [pinState, setPinState] = useState<PinState | null>(null)
   const pinInputRef = useRef<HTMLInputElement>(null)
@@ -28,25 +30,30 @@ export function FileExplorer({ initialFolderId }: { initialFolderId?: string } =
     if (pinState) pinInputRef.current?.focus()
   }, [pinState])
 
-  const currentFiles = selectedFolder?.children ?? filesystem
+  const currentFiles = folderStack.length ? (folderStack[folderStack.length - 1].children ?? []) : filesystem
+  const currentPath = getPathString(folderStack)
 
-  const currentPath = selectedFolder
-    ? `C:\\PORTFOLIO\\${selectedFolder.name.toUpperCase()}`
-    : 'C:\\PORTFOLIO'
-
-  const openFolder = useCallback((file: VirtualFile) => {
+  const openFolder = useCallback((file: VirtualFile, mode: 'replace' | 'push') => {
     if (file.locked) {
-      setPinState({ target: file, value: '', error: false })
+      setPinState({ target: file, value: '', error: false, mode })
       return
     }
-    setSelectedFolder(file)
+    if (mode === 'replace') {
+      setFolderStack([file])
+      return
+    }
+    setFolderStack((prev) => [...prev, file])
   }, [])
 
   const handlePinSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault()
     if (!pinState) return
     if (pinState.value === SECRET_PIN) {
-      setSelectedFolder(pinState.target)
+      if (pinState.mode === 'replace') {
+        setFolderStack([pinState.target])
+      } else {
+        setFolderStack((prev) => [...prev, pinState.target])
+      }
       setPinState(null)
     } else {
       setPinState((prev) => prev ? { ...prev, value: '', error: true } : null)
@@ -57,7 +64,7 @@ export function FileExplorer({ initialFolderId }: { initialFolderId?: string } =
   const handleFileOpen = useCallback(
     (file: VirtualFile) => {
       if (file.type === 'folder') {
-        openFolder(file)
+        openFolder(file, 'push')
         return
       }
       if (file.appType) {
@@ -69,17 +76,18 @@ export function FileExplorer({ initialFolderId }: { initialFolderId?: string } =
   )
 
   const handleUp = useCallback(() => {
-    setSelectedFolder(null)
+    setFolderStack((prev) => prev.slice(0, -1))
   }, [])
 
   useEffect(() => {
     if (!initialFolderId) return
-    const found = filesystem.find((f) => f.id === initialFolderId && f.type === 'folder')
+    const foundPath = findFolderPathById(filesystem, initialFolderId)
+    const found = foundPath?.[foundPath.length - 1]
     if (!found) return
     if (found.locked) {
-      setPinState({ target: found, value: '', error: false })
+      setPinState({ target: found, value: '', error: false, mode: 'replace' })
     } else {
-      setSelectedFolder(found)
+      setFolderStack(foundPath)
     }
   }, [initialFolderId])
 
@@ -130,7 +138,7 @@ export function FileExplorer({ initialFolderId }: { initialFolderId?: string } =
 
       {/* Toolbar */}
       <div className={styles.toolbar}>
-        <button className={styles.toolBtn} onClick={handleUp} disabled={!selectedFolder}>
+        <button className={styles.toolBtn} onClick={handleUp} disabled={folderStack.length === 0}>
           <img className={styles.toolBtnIcon} src={ICON_MAP.folder} alt="" />
           Dossier parent
         </button>
@@ -154,8 +162,8 @@ export function FileExplorer({ initialFolderId }: { initialFolderId?: string } =
         {/* Tree */}
         <div className={styles.tree}>
           <div
-            className={`${styles.treeItem} ${!selectedFolder ? styles.selected : ''}`}
-            onClick={() => setSelectedFolder(null)}
+            className={`${styles.treeItem} ${folderStack.length === 0 ? styles.selected : ''}`}
+            onClick={() => setFolderStack([])}
           >
             {renderIcon('computer', styles.treeIcon)}
             Portfolio
@@ -163,9 +171,9 @@ export function FileExplorer({ initialFolderId }: { initialFolderId?: string } =
           {filesystem.filter((f) => f.type === 'folder').map((f) => (
             <div
               key={f.id}
-              className={`${styles.treeItem} ${selectedFolder?.id === f.id ? styles.selected : ''}`}
+              className={`${styles.treeItem} ${folderStack[0]?.id === f.id ? styles.selected : ''}`}
               style={{ paddingLeft: 16 }}
-              onClick={() => openFolder(f)}
+              onClick={() => openFolder(f, 'replace')}
             >
               {renderIcon('folder', styles.treeIcon)}
               {f.name}

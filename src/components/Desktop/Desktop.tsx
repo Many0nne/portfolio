@@ -206,11 +206,10 @@ export function Desktop() {
 
   useEffect(() => {
     setIconPositions((prev) => {
-      const { result, changed } = resolveCollisions(prev, metricsRef.current, activeIconsRef.current)
+      const { result, changed } = resolveCollisions(prev, metricsRef.current, activeIcons)
       return changed ? result : prev
     })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [activeIcons, setIconPositions])
 
   useEffect(() => {
     play('startup')

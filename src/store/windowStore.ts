@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { AppType } from '../data/filesystem'
+import { useCasinoStore } from './casinoStore'
 
 export interface WindowState {
   id: string
@@ -20,6 +21,7 @@ const DEFAULT_SIZES: Record<AppType, { width: number; height: number }> = {
   'file-explorer': { width: 680, height: 460 },
   skills: { width: 500, height: 420 },
   resume: { width: 560, height: 500 },
+  notes: { width: 300, height: 220 },
   contact: { width: 520, height: 380 },
   about: { width: 380, height: 240 },
   minesweeper: { width: 262, height: 340 },
@@ -27,6 +29,8 @@ const DEFAULT_SIZES: Record<AppType, { width: number; height: number }> = {
   mail: { width: 660, height: 480 },
   paint: { width: 800, height: 580 },
   'media-player': { width: 275, height: 230 },
+  casino: { width: 480, height: 400 },
+  bank: { width: 420, height: 360 },
 }
 
 const APP_TITLES: Record<AppType, string> = {
@@ -35,6 +39,7 @@ const APP_TITLES: Record<AppType, string> = {
   'file-explorer': 'Explorateur',
   skills: 'Compétences',
   resume: 'CV — Notepad',
+  notes: 'Notes',
   contact: 'Terminal',
   about: 'À propos',
   minesweeper: 'Démineur',
@@ -42,6 +47,8 @@ const APP_TITLES: Record<AppType, string> = {
   mail: 'Boîte de réception - MailBox',
   paint: 'Paint',
   'media-player': 'Lecteur Multimédia',
+  casino: 'Casino',
+  bank: 'First National Bank of Win95',
 }
 
 const APP_ICONS: Record<AppType, string> = {
@@ -50,6 +57,7 @@ const APP_ICONS: Record<AppType, string> = {
   'file-explorer': 'folder',
   skills: 'control',
   resume: 'notepad',
+  notes: 'notepad',
   contact: 'cmd',
   about: 'info',
   minesweeper: 'minesweeper',
@@ -57,6 +65,8 @@ const APP_ICONS: Record<AppType, string> = {
   mail: 'mail',
   paint: 'paint',
   'media-player': 'media-player',
+  casino: 'casino',
+  bank: 'bank',
 }
 
 let zCounter = 10
@@ -78,6 +88,8 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
   activeWindowId: null,
 
   openWindow: (app, props) => {
+    if (useCasinoStore.getState().pledgedApps.includes(app)) return
+
     const { windows } = get()
 
     // Check if already open (except project-viewer which can open multiple)

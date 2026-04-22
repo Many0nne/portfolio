@@ -4,6 +4,7 @@ export type AppType =
   | 'file-explorer'
   | 'skills'
   | 'resume'
+  | 'notes'
   | 'contact'
   | 'about'
   | 'minesweeper'
@@ -11,6 +12,8 @@ export type AppType =
   | 'mail'
   | 'paint'
   | 'media-player'
+  | 'casino'
+  | 'bank'
 
 export interface VirtualFile {
   id: string
@@ -79,6 +82,14 @@ export const filesystem: VirtualFile[] = [
     icon: 'notepad',
     metadata: { size: '8.0 Ko', modified: '01/04/2026', description: 'Curriculum vitæ' },
     appType: 'resume',
+  },
+  {
+    id: 'notes',
+    name: 'Notes.txt',
+    type: 'document',
+    icon: 'notepad',
+    metadata: { size: '0.2 Ko', modified: '22/04/2026', description: 'Codes 777 et 95' },
+    appType: 'notes',
   },
   {
     id: 'contact',

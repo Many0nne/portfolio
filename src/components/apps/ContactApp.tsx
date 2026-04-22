@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import styles from './ContactApp.module.css'
+import { useCasinoStore } from '../../store/casinoStore'
 
 interface Line {
   text: string
@@ -7,6 +8,17 @@ interface Line {
 }
 
 const COMMANDS: Record<string, () => string[]> = {
+  '777': () => {
+    useCasinoStore.getState().unlockCasino()
+    return [
+      '◄ ACCÈS AUTORISÉ ►',
+      '',
+      'Félicitations ! Accès VIP déverrouillé.',
+      'Casino et Banque disponibles sur le bureau.',
+      'Solde initial : 500 crédits.',
+      '',
+    ]
+  },
   help: () => [
     'Commandes disponibles :',
     '  help      — affiche cette aide',

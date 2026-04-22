@@ -5,6 +5,8 @@ import { BootScreen } from './components/BootScreen/BootScreen'
 import { Taskbar } from './components/Taskbar/Taskbar'
 import { Window } from './components/Window/Window'
 import { useWindowStore } from './store/windowStore'
+import { useCasinoStore } from './store/casinoStore'
+import { GameOverDialog } from './components/GameOverDialog'
 import type { AppType } from './data/filesystem'
 
 const ProjectViewer = lazy(() =>
@@ -15,6 +17,9 @@ const SkillsApp = lazy(() =>
 )
 const ResumeApp = lazy(() =>
   import('./components/apps/ResumeApp').then((m) => ({ default: m.ResumeApp }))
+)
+const NotesApp = lazy(() =>
+  import('./components/apps/NotesApp').then((m) => ({ default: m.NotesApp }))
 )
 const ContactApp = lazy(() =>
   import('./components/apps/ContactApp').then((m) => ({ default: m.ContactApp }))
@@ -40,6 +45,12 @@ const PaintApp = lazy(() =>
 const MediaPlayer = lazy(() =>
   import('./components/apps/MediaPlayer').then((m) => ({ default: m.MediaPlayer }))
 )
+const CasinoApp = lazy(() =>
+  import('./components/apps/CasinoApp').then((m) => ({ default: m.CasinoApp }))
+)
+const BankApp = lazy(() =>
+  import('./components/apps/BankApp').then((m) => ({ default: m.BankApp }))
+)
 
 function AppContent({ app, props, windowId }: { app: AppType; props?: Record<string, unknown>; windowId: string }) {
   switch (app) {
@@ -49,6 +60,8 @@ function AppContent({ app, props, windowId }: { app: AppType; props?: Record<str
       return <SkillsApp />
     case 'resume':
       return <ResumeApp />
+    case 'notes':
+      return <NotesApp />
     case 'contact':
       return <ContactApp />
     case 'about':
@@ -66,6 +79,10 @@ function AppContent({ app, props, windowId }: { app: AppType; props?: Record<str
       return <PaintApp />
     case 'media-player':
       return <MediaPlayer />
+    case 'casino':
+      return <CasinoApp />
+    case 'bank':
+      return <BankApp />
     default:
       return <div style={{ padding: 16 }}>Application inconnue.</div>
   }
@@ -73,6 +90,7 @@ function AppContent({ app, props, windowId }: { app: AppType; props?: Record<str
 
 export default function App() {
   const { windows } = useWindowStore()
+  const { isBankrupt } = useCasinoStore()
   const [isBooted, setIsBooted] = useState(false)
 
   const handleBoot = () => {
@@ -109,6 +127,7 @@ export default function App() {
         </Window>
       ))}
       <Taskbar onShutdown={handleShutdown} />
+      {isBankrupt && <GameOverDialog />}
     </>
   )
 }

@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import styles from './Desktop.module.css'
 import { useWindowStore } from '../../store/windowStore'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { useSound } from '../../hooks/useSound'
+import { useCasinoStore } from '../../store/casinoStore'
 import type { AppType } from '../../data/filesystem'
 
 const TASKBAR_H = 40
@@ -31,10 +32,11 @@ interface DesktopIconDef {
   defaultPos: GridPos
 }
 
-const DESKTOP_ICONS: DesktopIconDef[] = [
+const BASE_DESKTOP_ICONS: DesktopIconDef[] = [
   { id: 'my-projects', label: 'Mes Projets', icon: 'folder', image: '/img/Windows_95_FOLDER.png', app: 'file-explorer', props: { folderId: 'projects' }, defaultPos: { col: 0, row: 0 } },
   { id: 'skills', label: 'Compétences', icon: 'control', image: '/img/Settings_32x32_4.png', app: 'skills', defaultPos: { col: 0, row: 1 } },
   { id: 'resume', label: 'CV.txt', icon: 'notepad', image: '/img/FileText_32x32_4.png', app: 'resume', defaultPos: { col: 0, row: 2 } },
+  { id: 'notes', label: 'Notes.txt', icon: 'notepad', image: '/img/FileText_32x32_4.png', app: 'notes', defaultPos: { col: 2, row: 2 } },
   { id: 'contact', label: 'Contact', icon: 'cmd', image: '/img/Shell323_32x32_4.png', app: 'contact', defaultPos: { col: 0, row: 3 } },
   { id: 'about', label: 'À propos', icon: 'info', image: '/img/Awfxex32Info_32x32_4.png', app: 'about', defaultPos: { col: 0, row: 4 } },
   { id: 'minesweeper', label: 'Démineur', icon: 'minesweeper', image: '/img/95minesweeper.ico', app: 'minesweeper', defaultPos: { col: 1, row: 0 } },
@@ -42,6 +44,11 @@ const DESKTOP_ICONS: DesktopIconDef[] = [
   { id: 'mail', label: 'Messagerie', icon: 'mail', image: '/img/Mailnews12_32x32_4.png', app: 'mail', defaultPos: { col: 1, row: 2 } },
   { id: 'paint', label: 'Paint', icon: 'paint', image: '/img/Settings_32x32_4.png', app: 'paint', defaultPos: { col: 2, row: 0 } },
   { id: 'media-player', label: 'Lecteur Multimédia', icon: 'media-player', image: '/icon/w98_media_player.ico', app: 'media-player', defaultPos: { col: 2, row: 1 } },
+]
+
+const CASINO_DESKTOP_ICONS: DesktopIconDef[] = [
+  { id: 'casino', label: 'Casino', icon: '🎰', image: '/img/7.png', app: 'casino', defaultPos: { col: 2, row: 2 } },
+  { id: 'bank', label: 'Banque', icon: '🏦', image: '/img/icons8-banque-32.png', app: 'bank', defaultPos: { col: 2, row: 3 } },
 ]
 
 function computeMetrics(): GridMetrics {
@@ -73,7 +80,7 @@ function clampToGrid(pos: GridPos, m: GridMetrics): GridPos {
   }
 }
 
-function resolveCollisions(positions: Record<string, GridPos>, m: GridMetrics): { result: Record<string, GridPos>; changed: boolean } {
+function resolveCollisions(positions: Record<string, GridPos>, m: GridMetrics, icons: DesktopIconDef[]): { result: Record<string, GridPos>; changed: boolean } {
   const result: Record<string, GridPos> = {}
   const occupied = new Set<string>()
   let changed = false
@@ -86,7 +93,7 @@ function resolveCollisions(positions: Record<string, GridPos>, m: GridMetrics): 
   }
 
   // Priority: column-major order (col asc, then row asc)
-  const sorted = [...DESKTOP_ICONS].sort((a, b) => {
+  const sorted = [...icons].sort((a, b) => {
     const pa = getPos(a)
     const pb = getPos(b)
     return pa.col !== pb.col ? pa.col - pb.col : pa.row - pb.row
@@ -166,6 +173,7 @@ const DESKTOP_THEMES: DesktopTheme[] = [
 export function Desktop() {
   const { openWindow } = useWindowStore()
   const { play } = useSound()
+  const { unlocked, pledgedApps } = useCasinoStore()
   const [desktopTheme, setDesktopTheme] = useLocalStorage<DesktopThemeId>('win95-desktop-theme-v1', 'emerald')
   const [iconPositions, setIconPositions] = useLocalStorage<Record<string, GridPos>>(
     'win95-icon-positions-v2',
@@ -173,9 +181,17 @@ export function Desktop() {
   )
   const [metrics, setMetrics] = useState<GridMetrics>(computeMetrics)
   const metricsRef = useRef(metrics)
+
+  const activeIcons = useMemo(
+    () => (unlocked ? [...BASE_DESKTOP_ICONS, ...CASINO_DESKTOP_ICONS] : BASE_DESKTOP_ICONS),
+    [unlocked]
+  )
+  const activeIconsRef = useRef(activeIcons)
+  useEffect(() => { activeIconsRef.current = activeIcons }, [activeIcons])
+
   const [tooSmall, setTooSmall] = useState(() => {
     const m = computeMetrics()
-    return m.numCols * m.numRows < DESKTOP_ICONS.length
+    return m.numCols * m.numRows < BASE_DESKTOP_ICONS.length
   })
   const [selectedIcon, setSelectedIcon] = useState<string | null>(null)
   const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null)
@@ -190,7 +206,7 @@ export function Desktop() {
 
   useEffect(() => {
     setIconPositions((prev) => {
-      const { result, changed } = resolveCollisions(prev, metricsRef.current)
+      const { result, changed } = resolveCollisions(prev, metricsRef.current, activeIconsRef.current)
       return changed ? result : prev
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -203,7 +219,7 @@ export function Desktop() {
   useEffect(() => {
     const handleResize = () => {
       const m = computeMetrics()
-      if (m.numCols * m.numRows < DESKTOP_ICONS.length) {
+      if (m.numCols * m.numRows < activeIconsRef.current.length) {
         setTooSmall(true)
         return
       }
@@ -211,7 +227,7 @@ export function Desktop() {
       setMetrics(m)
       metricsRef.current = m
       setIconPositions((prev) => {
-        const { result, changed } = resolveCollisions(prev, m)
+        const { result, changed } = resolveCollisions(prev, m, activeIconsRef.current)
         return changed ? result : prev
       })
     }
@@ -279,7 +295,7 @@ export function Desktop() {
 
           setIconPositions((prev) => {
             const occupied = new Set<string>()
-            DESKTOP_ICONS.forEach((ic) => {
+            activeIconsRef.current.forEach((ic) => {
               if (ic.id === icon.id) return
               const pos = prev[ic.id] && typeof prev[ic.id].col === 'number'
                 ? prev[ic.id]
@@ -335,6 +351,7 @@ export function Desktop() {
   const handleIconClick = useCallback(
     (e: React.MouseEvent, icon: DesktopIconDef) => {
       e.stopPropagation()
+      if (pledgedApps.includes(icon.app)) return
       const now = Date.now()
       const last = lastClick.current
       if (last && last.id === icon.id && now - last.time < 500) {
@@ -345,7 +362,7 @@ export function Desktop() {
         lastClick.current = { id: icon.id, time: now }
       }
     },
-    [openWindow, play]
+    [openWindow, play, pledgedApps]
   )
 
   const handleDesktopClick = useCallback(() => setSelectedIcon(null), [])
@@ -380,8 +397,9 @@ export function Desktop() {
           '--cell-h': `${metrics.cellH}px`,
         } as React.CSSProperties}
       >
-        {DESKTOP_ICONS.map((icon) => {
+        {activeIcons.map((icon) => {
           const isDragging = draggingPixel?.id === icon.id
+          const isPledged = pledgedApps.includes(icon.app)
           let left: number
           let top: number
 
@@ -398,12 +416,12 @@ export function Desktop() {
           return (
             <div
               key={icon.id}
-              className={`${styles.icon} ${selectedIcon === icon.id ? styles.selected : ''} ${isDragging ? styles.dragging : ''}`}
+              className={`${styles.icon} ${selectedIcon === icon.id ? styles.selected : ''} ${isDragging ? styles.dragging : ''} ${isPledged ? styles.pledged : ''}`}
               style={{ left, top, width: metrics.cellW, height: metrics.cellH }}
               onPointerDown={(e) => handleIconPointerDown(e, icon)}
               onClick={(e) => handleIconClick(e, icon)}
               onDragStart={(e) => e.preventDefault()}
-              title={`Double-cliquer pour ouvrir ${icon.label}`}
+              title={isPledged ? `${icon.label} (engagé)` : `Double-cliquer pour ouvrir ${icon.label}`}
             >
               {icon.image ? (
                 <img src={icon.image} alt={icon.label} className={styles.iconImage} draggable={false} />
@@ -411,6 +429,7 @@ export function Desktop() {
                 <span className={styles.iconEmoji}>{icon.icon}</span>
               )}
               <span className={styles.iconLabel}>{icon.label}</span>
+              {isPledged && <span className={styles.pledgeLock}>🔒</span>}
             </div>
           )
         })}
@@ -425,7 +444,7 @@ export function Desktop() {
             <div className={styles.tooSmallBody}>
               <img src="/img/Windows_95_FOLDER.png" alt="" className={styles.tooSmallIcon} />
               <p>
-                La fenêtre est trop petite pour afficher toutes les icônes du bureau ({DESKTOP_ICONS.length} icônes requises).
+                La fenêtre est trop petite pour afficher toutes les icônes du bureau ({activeIcons.length} icônes requises).
                 Agrandissez la fenêtre pour continuer.
               </p>
             </div>

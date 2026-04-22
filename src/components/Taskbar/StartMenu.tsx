@@ -51,6 +51,12 @@ export function StartMenu({ onClose, onShutdown }: StartMenuProps) {
                 </span>
                 CV (Notepad)
               </div>
+              <div className={styles.menuItem} onClick={() => open('notes')}>
+                <span className={styles.menuItemIcon}>
+                  <AppIcon name="notepad" size={16} className={styles.menuItemIconImg} />
+                </span>
+                Notes
+              </div>
               <div className={styles.menuItem} onClick={() => open('contact')}>
                 <span className={styles.menuItemIcon}>
                   <AppIcon name="cmd" size={16} className={styles.menuItemIconImg} />

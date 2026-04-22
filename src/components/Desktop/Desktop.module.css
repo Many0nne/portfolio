@@ -41,6 +41,27 @@
   z-index: 100;
 }
 
+.icon.pledged {
+  opacity: 0.45;
+  filter: grayscale(1);
+  cursor: default;
+}
+
+.icon.pledged:hover,
+.icon.pledged.selected {
+  background: transparent;
+  border-color: transparent;
+}
+
+.pledgeLock {
+  position: absolute;
+  bottom: 22px;
+  right: calc(50% - 28px);
+  font-size: 14px;
+  filter: grayscale(0);
+  opacity: 1;
+}
+
 .iconEmoji {
   font-size: 32px;
   line-height: 1;

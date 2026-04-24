@@ -12,7 +12,7 @@ export function ShutdownScreen({ onRestart }: ShutdownScreenProps) {
         <p className={styles.message}>
           Vous pouvez maintenant éteindre votre ordinateur en toute sécurité.
         </p>
-        <button className={styles.restartBtn} onClick={onRestart}>
+        <button className={styles.restartBtn} onClick={() => { localStorage.clear(); onRestart(); }}>
           Redémarrer
         </button>
       </div>

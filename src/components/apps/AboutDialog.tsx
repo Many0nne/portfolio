@@ -1,6 +1,13 @@
+import { useWindowStore } from '../../store/windowStore'
 import styles from './AboutDialog.module.css'
 
-export function AboutDialog() {
+interface AboutDialogProps {
+  windowId: string
+}
+
+export function AboutDialog({ windowId }: AboutDialogProps) {
+  const { closeWindow } = useWindowStore()
+
   return (
     <div className={styles.container}>
       <div className={styles.logoArea}>
@@ -18,8 +25,11 @@ export function AboutDialog() {
       </div>
       <div className={styles.divider} />
       <div className={styles.credits}>
-        <p>Construit avec React 18, TypeScript, Vite et 98.css</p>
+        <p>Construit avec React 19, TypeScript, Vite et 98.css</p>
         <p>© 2026 Terry BARILLON</p>
+      </div>
+      <div className={styles.buttons}>
+        <button className="button" onClick={() => closeWindow(windowId)}>OK</button>
       </div>
     </div>
   )

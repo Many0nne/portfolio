@@ -1,29 +1,29 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { AppType } from '../data/filesystem'
+import { useFsStore } from '../fs/fsStore'
+import { LNK_CASINO_ID, LNK_BANK_ID } from '../fs/seed'
 
-export const PLEDGEABLE_APPS: { type: AppType; label: string }[] = [
-  { type: 'file-explorer', label: 'Explorateur' },
-  { type: 'skills', label: 'Compétences' },
-  { type: 'resume', label: 'CV.txt' },
-  { type: 'about', label: 'À propos' },
-  { type: 'minesweeper', label: 'Démineur' },
-  { type: 'mail', label: 'Messagerie' },
-  { type: 'paint', label: 'Paint' },
-  { type: 'media-player', label: 'Lecteur Multimédia' },
+export const PLEDGEABLE_LABELS: { id: string; label: string }[] = [
+  { id: 'explorer', label: 'Explorateur' },
+  { id: 'notepad', label: 'Notepad' },
+  { id: 'about', label: 'À propos' },
+  { id: 'minesweeper', label: 'Démineur' },
+  { id: 'mail', label: 'Messagerie' },
+  { id: 'paint', label: 'Paint' },
+  { id: 'media-player', label: 'Lecteur Multimédia' },
 ]
 
 interface CasinoState {
   unlocked: boolean
   credits: number
   debt: number
-  pledgedApps: AppType[]
+  pledgedFiles: string[]
   isBankrupt: boolean
   unlockCasino: () => void
   addCredits: (amount: number) => void
   deductCredits: (amount: number) => void
-  pledgeApps: (apps: AppType[]) => void
-  redeemApps: (apps: AppType[]) => void
+  pledgeFiles: (fileIds: string[]) => void
+  redeemFiles: (fileIds: string[]) => void
   declareBankruptcy: () => void
 }
 
@@ -33,38 +33,52 @@ export const useCasinoStore = create<CasinoState>()(
       unlocked: false,
       credits: 500,
       debt: 0,
-      pledgedApps: [],
+      pledgedFiles: [],
       isBankrupt: false,
 
-      unlockCasino: () => set({ unlocked: true }),
+      unlockCasino: () => {
+        set({ unlocked: true })
+        const fs = useFsStore.getState()
+        fs.setAttrs(LNK_CASINO_ID, { hidden: false })
+        fs.setAttrs(LNK_BANK_ID, { hidden: false })
+      },
 
       addCredits: (amount) => set((s) => ({ credits: s.credits + amount })),
 
       deductCredits: (amount) =>
         set((s) => {
           const newCredits = Math.max(0, s.credits - amount)
-          const allPledged = PLEDGEABLE_APPS.every(({ type }) => s.pledgedApps.includes(type))
+          const allPledged = PLEDGEABLE_LABELS.every(({ id }) => s.pledgedFiles.includes(id))
           return { credits: newCredits, isBankrupt: allPledged && newCredits === 0 }
         }),
 
-      pledgeApps: (apps) =>
+      pledgeFiles: (fileIds) =>
         set((s) => {
-          const newPledged = [...new Set([...s.pledgedApps, ...apps])]
-          const newDebt = s.debt + apps.length * 100
-          const allPledged = PLEDGEABLE_APPS.every(({ type }) => newPledged.includes(type))
-          return { pledgedApps: newPledged, debt: newDebt, isBankrupt: allPledged && s.credits === 0 }
+          const newPledged = [...new Set([...s.pledgedFiles, ...fileIds])]
+          const newDebt = s.debt + fileIds.length * 100
+          const allPledged = PLEDGEABLE_LABELS.every(({ id }) => newPledged.includes(id))
+          return { pledgedFiles: newPledged, debt: newDebt, isBankrupt: allPledged && s.credits === 0 }
         }),
 
-      redeemApps: (apps) =>
+      redeemFiles: (fileIds) =>
         set((s) => ({
-          pledgedApps: s.pledgedApps.filter((a) => !apps.includes(a)),
-          debt: Math.max(0, s.debt - apps.length * 100),
+          pledgedFiles: s.pledgedFiles.filter((id) => !fileIds.includes(id)),
+          debt: Math.max(0, s.debt - fileIds.length * 100),
           isBankrupt: false,
         })),
 
       declareBankruptcy: () => {
-        localStorage.clear()
-        window.location.reload()
+        localStorage.removeItem('win95-casino-v1')
+        set({
+          unlocked: false,
+          credits: 500,
+          debt: 0,
+          pledgedFiles: [],
+          isBankrupt: false,
+        })
+        const fs = useFsStore.getState()
+        fs.setAttrs(LNK_CASINO_ID, { hidden: true })
+        fs.setAttrs(LNK_BANK_ID, { hidden: true })
       },
     }),
     { name: 'win95-casino-v1' }

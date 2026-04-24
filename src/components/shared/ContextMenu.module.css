@@ -1,0 +1,33 @@
+.menu {
+  position: fixed;
+  background: var(--surface);
+  border: var(--border-window-outer);
+  border-color: var(--button-face);
+  box-shadow: 1px 1px 0 var(--button-shadow), 2px 2px 0 var(--button-dark-shadow);
+  min-width: 160px;
+  z-index: 99000;
+  padding: 2px;
+}
+
+.item {
+  padding: 3px 20px 3px 8px;
+  font-size: 11px;
+  cursor: default;
+  white-space: nowrap;
+  color: var(--button-text);
+}
+
+.item:hover:not(.disabled) {
+  background: var(--dialog-blue);
+  color: var(--button-highlight);
+}
+
+.disabled {
+  color: var(--button-shadow);
+}
+
+.separator {
+  height: 1px;
+  background: var(--button-shadow);
+  margin: 2px 0;
+}

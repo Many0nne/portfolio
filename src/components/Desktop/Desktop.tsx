@@ -4,8 +4,12 @@ import { useWindowStore } from '../../store/windowStore'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { useSound } from '../../hooks/useSound'
 import { useCasinoStore } from '../../store/casinoStore'
-import { desktopShortcuts } from '../../data/filesystem'
-import type { DesktopShortcut } from '../../data/filesystem'
+import { useFsStore } from '../../fs/fsStore'
+import { BUREAU_ID } from '../../fs/seed'
+import { ICON_MAP } from '../../data/icons'
+import { ContextMenu } from '../shared/ContextMenu'
+import type { FsNode } from '../../fs/types'
+import type { ContextMenuItem } from '../shared/ContextMenu'
 
 const TASKBAR_H = 40
 const MIN_CELL_W = 80
@@ -39,10 +43,7 @@ function gridToPixel(col: number, row: number, m: GridMetrics) {
 }
 
 function pixelToGrid(x: number, y: number, m: GridMetrics): GridPos {
-  return {
-    col: Math.round(x / m.cellW),
-    row: Math.round(y / m.cellH),
-  }
+  return { col: Math.round(x / m.cellW), row: Math.round(y / m.cellH) }
 }
 
 function clampToGrid(pos: GridPos, m: GridMetrics): GridPos {
@@ -52,44 +53,11 @@ function clampToGrid(pos: GridPos, m: GridMetrics): GridPos {
   }
 }
 
-function resolveCollisions(positions: Record<string, GridPos>, m: GridMetrics, icons: DesktopShortcut[]): { result: Record<string, GridPos>; changed: boolean } {
-  const result: Record<string, GridPos> = {}
-  const occupied = new Set<string>()
-  let changed = false
-
-  const getPos = (icon: DesktopShortcut) => {
-    const raw = positions[icon.id] && typeof positions[icon.id]?.col === 'number'
-      ? positions[icon.id]
-      : icon.defaultPos
-    return clampToGrid(raw, m)
-  }
-
-  // Priority: column-major order (col asc, then row asc)
-  const sorted = [...icons].sort((a, b) => {
-    const pa = getPos(a)
-    const pb = getPos(b)
-    return pa.col !== pb.col ? pa.col - pb.col : pa.row - pb.row
-  })
-
-  sorted.forEach((icon) => {
-    const raw = positions[icon.id] && typeof positions[icon.id]?.col === 'number'
-      ? positions[icon.id]
-      : icon.defaultPos
-    const clamped = clampToGrid(raw, m)
-    const free = findFreeCell(clamped, occupied, m)
-    result[icon.id] = free
-    occupied.add(`${free.col},${free.row}`)
-    if (free.col !== raw.col || free.row !== raw.row) changed = true
-  })
-
-  return { result, changed }
-}
-
 function findFreeCell(target: GridPos, occupied: Set<string>, m: GridMetrics): GridPos {
   const key = (c: number, r: number) => `${c},${r}`
   const clamped = clampToGrid(target, m)
   if (!occupied.has(key(clamped.col, clamped.row))) return clamped
-  for (let radius = 1; radius <= 5; radius++) {
+  for (let radius = 1; radius <= 10; radius++) {
     for (let dc = -radius; dc <= radius; dc++) {
       for (let dr = -radius; dr <= radius; dr++) {
         if (Math.abs(dc) !== radius && Math.abs(dr) !== radius) continue
@@ -101,11 +69,15 @@ function findFreeCell(target: GridPos, occupied: Set<string>, m: GridMetrics): G
   return clamped
 }
 
-const MIN_VISIBLE_SHORTCUTS = desktopShortcuts.filter((shortcut) => !shortcut.requiresCasinoUnlock).length
+function getGridCapacity(m: GridMetrics): number {
+  return m.numCols * m.numRows
+}
 
-interface ContextMenu {
-  x: number
-  y: number
+function assertGridCapacity(requiredCount: number, m: GridMetrics) {
+  const capacity = getGridCapacity(m)
+  if (requiredCount > capacity) {
+    throw new Error(`L'ecran n'est pas assez grand pour afficher toutes les applications existantes (${requiredCount}/${capacity}).`)
+  }
 }
 
 type DesktopThemeId = 'emerald' | 'azure' | 'sunset' | 'graphite'
@@ -118,72 +90,119 @@ interface DesktopTheme {
 }
 
 const DESKTOP_THEMES: DesktopTheme[] = [
-  {
-    id: 'emerald',
-    label: 'Classique',
-    backgroundColor: '#008080',
-    backgroundImage: 'linear-gradient(160deg, rgba(0, 128, 128, 0.95) 0%, rgba(0, 102, 102, 0.95) 100%)',
-  },
-  {
-    id: 'azure',
-    label: 'Azure',
-    backgroundColor: '#0b4f8a',
-    backgroundImage: 'linear-gradient(165deg, rgba(11, 79, 138, 0.95) 0%, rgba(45, 126, 196, 0.95) 100%)',
-  },
-  {
-    id: 'sunset',
-    label: 'Sunset',
-    backgroundColor: '#8a3f2f',
-    backgroundImage: 'linear-gradient(170deg, rgba(163, 66, 43, 0.95) 0%, rgba(224, 123, 57, 0.95) 100%)',
-  },
-  {
-    id: 'graphite',
-    label: 'Graphite',
-    backgroundColor: '#3c4751',
-    backgroundImage: 'linear-gradient(170deg, rgba(60, 71, 81, 0.95) 0%, rgba(91, 106, 119, 0.95) 100%)',
-  },
+  { id: 'emerald', label: 'Classique', backgroundColor: '#008080', backgroundImage: 'linear-gradient(160deg, rgba(0,128,128,.95) 0%, rgba(0,102,102,.95) 100%)' },
+  { id: 'azure', label: 'Azure', backgroundColor: '#0b4f8a', backgroundImage: 'linear-gradient(165deg, rgba(11,79,138,.95) 0%, rgba(45,126,196,.95) 100%)' },
+  { id: 'sunset', label: 'Sunset', backgroundColor: '#8a3f2f', backgroundImage: 'linear-gradient(170deg, rgba(163,66,43,.95) 0%, rgba(224,123,57,.95) 100%)' },
+  { id: 'graphite', label: 'Graphite', backgroundColor: '#3c4751', backgroundImage: 'linear-gradient(170deg, rgba(60,71,81,.95) 0%, rgba(91,106,119,.95) 100%)' },
 ]
 
+// Default grid positions for the seeded shortcuts (col, row)
+const DEFAULT_POSITIONS: Record<string, GridPos> = {
+  'lnk-mes-projets': { col: 0, row: 0 },
+  'lnk-competences': { col: 0, row: 1 },
+  'lnk-cv': { col: 0, row: 2 },
+  'lnk-notes': { col: 0, row: 3 },
+  'lnk-about': { col: 0, row: 4 },
+  'lnk-minesweeper': { col: 1, row: 0 },
+  'lnk-terry-files': { col: 1, row: 1 },
+  'lnk-mail': { col: 1, row: 2 },
+  'lnk-paint': { col: 2, row: 0 },
+  'lnk-media-player': { col: 2, row: 1 },
+  'lnk-terminal': { col: 3, row: 0 },
+  'lnk-casino': { col: 2, row: 2 },
+  'lnk-bank': { col: 2, row: 3 },
+}
+
+function computeDynamicSeedPositions(ids: string[], m: GridMetrics, existing: Record<string, GridPos> = {}): Record<string, GridPos> {
+  assertGridCapacity(ids.length, m)
+
+  const res: Record<string, GridPos> = {}
+  const occupied = new Set<string>()
+  const key = (c: number, r: number) => `${c},${r}`
+
+  // Mark already existing positions as occupied
+  Object.entries(existing).forEach(([k, p]) => {
+    const clamped = clampToGrid(p, m)
+    occupied.add(key(clamped.col, clamped.row))
+    res[k] = clamped
+  })
+
+  let scanIndex = 0
+  for (const id of ids) {
+    if (res[id]) continue // already set from existing
+
+    // preferred target: DEFAULT_POSITIONS (clamped) or a scanning position
+    const preferred = DEFAULT_POSITIONS[id]
+      ? clampToGrid(DEFAULT_POSITIONS[id], m)
+      : { col: scanIndex % m.numCols, row: Math.floor(scanIndex / m.numCols) }
+
+    const free = findFreeCell(preferred, occupied, m)
+    res[id] = free
+    occupied.add(key(free.col, free.row))
+
+    scanIndex++
+  }
+
+  return res
+}
+
+function getIconImage(node: FsNode): string | null {
+  if (node.shortcut) {
+    const appId = node.shortcut.app
+    const iconMap: Record<string, string> = {
+      notepad: ICON_MAP.notepad,
+      explorer: ICON_MAP.folder,
+      terminal: ICON_MAP.cmd,
+      paint: ICON_MAP.paint,
+      'media-player': ICON_MAP['media-player'],
+      mail: ICON_MAP.mail,
+      minesweeper: ICON_MAP.minesweeper,
+      'project-viewer': ICON_MAP.project,
+      casino: ICON_MAP.casino,
+      bank: ICON_MAP.bank,
+      about: ICON_MAP.info,
+    }
+    return iconMap[appId] ?? null
+  }
+  return null
+}
+
+function getIconLabel(node: FsNode): string {
+  const name = node.name
+  if (name.endsWith('.lnk')) return name.slice(0, -4)
+  return name
+}
+
 export function Desktop() {
-  const { openWindow } = useWindowStore()
+  const { openApp, openFile } = useWindowStore()
   const { play } = useSound()
-  const { unlocked, pledgedApps } = useCasinoStore()
-  const [desktopTheme, setDesktopTheme] = useLocalStorage<DesktopThemeId>('win95-desktop-theme-v1', 'emerald')
-  const [iconPositions, setIconPositions] = useLocalStorage<Record<string, GridPos>>(
-    'win95-icon-positions-v2',
-    {}
-  )
+  const { unlocked } = useCasinoStore()
+  const fsStore = useFsStore()
+  const [desktopTheme] = useLocalStorage<DesktopThemeId>('win95-desktop-theme-v1', 'emerald')
+  const [iconPositions, setIconPositions] = useLocalStorage<Record<string, GridPos>>('win95-icon-positions-v2', {})
   const [metrics, setMetrics] = useState<GridMetrics>(computeMetrics)
   const metricsRef = useRef(metrics)
 
-  const activeIcons = useMemo(
-    () => desktopShortcuts.filter((shortcut) => !shortcut.requiresCasinoUnlock || unlocked),
-    [unlocked]
-  )
-  const activeIconsRef = useRef(activeIcons)
-  useEffect(() => { activeIconsRef.current = activeIcons }, [activeIcons])
+  const bureauIcons: FsNode[] = useMemo(() => {
+    const children = fsStore.getChildren(BUREAU_ID)
+    return children.filter((n) => {
+      if (n.attrs?.hidden) return unlocked
+      return true
+    })
+  }, [fsStore, fsStore.nodes, unlocked])
 
-  const [tooSmall, setTooSmall] = useState(() => {
-    const m = computeMetrics()
-    return m.numCols * m.numRows < MIN_VISIBLE_SHORTCUTS
-  })
+  const bureauIconsRef = useRef(bureauIcons)
+  useEffect(() => { bureauIconsRef.current = bureauIcons }, [bureauIcons])
+
   const [selectedIcon, setSelectedIcon] = useState<string | null>(null)
-  const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null)
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId?: string } | null>(null)
+  const [gridError, setGridError] = useState<string | null>(null)
   const [draggingPixel, setDraggingPixel] = useState<{ id: string; x: number; y: number } | null>(null)
   const lastClick = useRef<{ id: string; time: number } | null>(null)
   const dragStart = useRef<{ mx: number; my: number; ix: number; iy: number; iconId: string; pointerId: number } | null>(null)
   const lastPointer = useRef<{ x: number; y: number } | null>(null)
 
-  useEffect(() => {
-    metricsRef.current = metrics
-  }, [metrics])
-
-  useEffect(() => {
-    setIconPositions((prev) => {
-      const { result, changed } = resolveCollisions(prev, metricsRef.current, activeIcons)
-      return changed ? result : prev
-    })
-  }, [activeIcons, setIconPositions])
+  useEffect(() => { metricsRef.current = metrics }, [metrics])
 
   useEffect(() => {
     play('startup')
@@ -192,22 +211,12 @@ export function Desktop() {
   useEffect(() => {
     const handleResize = () => {
       const m = computeMetrics()
-      if (m.numCols * m.numRows < activeIconsRef.current.length) {
-        setTooSmall(true)
-        return
-      }
-      setTooSmall(false)
       setMetrics(m)
       metricsRef.current = m
-      setIconPositions((prev) => {
-        const { result, changed } = resolveCollisions(prev, m, activeIconsRef.current)
-        return changed ? result : prev
-      })
     }
-
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [setIconPositions])
+  }, [])
 
   useEffect(() => {
     const handler = () => setContextMenu(null)
@@ -215,14 +224,31 @@ export function Desktop() {
     return () => document.removeEventListener('click', handler)
   }, [])
 
-  const getGridPos = (id: string, def: GridPos): GridPos => {
+  const [seededPositions, setSeededPositions] = useState<Record<string, GridPos>>({})
+
+  useEffect(() => {
+    const ids = bureauIcons.map((b) => b.id)
+    const m = metricsRef.current
+    try {
+      const computed = computeDynamicSeedPositions(ids, m, iconPositions ?? {})
+      setSeededPositions(computed)
+      setGridError(null)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "L'ecran n'est pas assez grand pour afficher toutes les applications existantes."
+      setGridError(message)
+      setSeededPositions({})
+    }
+  }, [bureauIcons, metrics, iconPositions])
+
+  const getGridPos = (id: string): GridPos => {
     const stored = iconPositions[id]
-    if (stored && typeof stored.col === 'number' && typeof stored.row === 'number') return stored
-    return def
+    if (stored && typeof stored.col === 'number') return stored
+    if (seededPositions[id]) return seededPositions[id]
+    return { col: 0, row: 0 }
   }
 
   const handleIconPointerDown = useCallback(
-    (e: React.PointerEvent<HTMLDivElement>, icon: DesktopShortcut) => {
+    (e: React.PointerEvent<HTMLDivElement>, icon: FsNode) => {
       e.preventDefault()
       e.stopPropagation()
       setSelectedIcon(icon.id)
@@ -231,9 +257,7 @@ export function Desktop() {
       try { sourceEl.setPointerCapture(e.pointerId) } catch { /* no-op */ }
 
       const m = metricsRef.current
-      const gridPos = iconPositions[icon.id] && typeof iconPositions[icon.id].col === 'number'
-        ? iconPositions[icon.id]
-        : icon.defaultPos
+      const gridPos = getGridPos(icon.id)
       const pixel = gridToPixel(gridPos.col, gridPos.row, m)
 
       dragStart.current = { mx: e.clientX, my: e.clientY, ix: pixel.x, iy: pixel.y, iconId: icon.id, pointerId: e.pointerId }
@@ -250,36 +274,26 @@ export function Desktop() {
       }
 
       const finalizeDrag = (clientX: number, clientY: number) => {
-        if (!dragStart.current) {
-          cleanupDragListeners()
-          setDraggingPixel(null)
-          return
-        }
-
+        if (!dragStart.current) { cleanupDragListeners(); setDraggingPixel(null); return }
         const dx = clientX - dragStart.current.mx
         const dy = clientY - dragStart.current.my
         const didDrag = Math.abs(dx) >= 4 || Math.abs(dy) >= 4
-
         if (didDrag) {
           const rawX = Math.max(0, dragStart.current.ix + dx)
           const rawY = Math.max(0, dragStart.current.iy + dy)
           const currentMetrics = metricsRef.current
           const targetCell = pixelToGrid(rawX, rawY, currentMetrics)
-
           setIconPositions((prev) => {
             const occupied = new Set<string>()
-            activeIconsRef.current.forEach((ic) => {
+            bureauIconsRef.current.forEach((ic) => {
               if (ic.id === icon.id) return
-              const pos = prev[ic.id] && typeof prev[ic.id].col === 'number'
-                ? prev[ic.id]
-                : ic.defaultPos
+              const pos = prev[ic.id] && typeof prev[ic.id].col === 'number' ? prev[ic.id] : (DEFAULT_POSITIONS[ic.id] ?? { col: 0, row: 0 })
               occupied.add(`${pos.col},${pos.row}`)
             })
             const freeCell = findFreeCell(targetCell, occupied, currentMetrics)
             return { ...prev, [icon.id]: freeCell }
           })
         }
-
         dragStart.current = null
         setDraggingPixel(null)
         cleanupDragListeners()
@@ -291,11 +305,7 @@ export function Desktop() {
         const dx = me.clientX - dragStart.current.mx
         const dy = me.clientY - dragStart.current.my
         if (Math.abs(dx) < 4 && Math.abs(dy) < 4) return
-        setDraggingPixel({
-          id: icon.id,
-          x: Math.max(0, dragStart.current.ix + dx),
-          y: Math.max(0, dragStart.current.iy + dy),
-        })
+        setDraggingPixel({ id: icon.id, x: Math.max(0, dragStart.current.ix + dx), y: Math.max(0, dragStart.current.iy + dy) })
       }
 
       const onUp = (me: PointerEvent) => {
@@ -322,57 +332,128 @@ export function Desktop() {
   )
 
   const handleIconClick = useCallback(
-    (e: React.MouseEvent, icon: DesktopShortcut) => {
+    (e: React.MouseEvent, icon: FsNode) => {
       e.stopPropagation()
-      if (pledgedApps.includes(icon.app)) return
       const now = Date.now()
       const last = lastClick.current
       if (last && last.id === icon.id && now - last.time < 500) {
         play('open')
-        openWindow(icon.app, icon.props)
+        openFile(icon.id)
         lastClick.current = null
       } else {
         lastClick.current = { id: icon.id, time: now }
       }
     },
-    [openWindow, play, pledgedApps]
+    [openFile, play]
   )
+
+  const handleIconContextMenu = useCallback((e: React.MouseEvent, icon: FsNode) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setSelectedIcon(icon.id)
+    setContextMenu({ x: e.clientX, y: e.clientY, nodeId: icon.id })
+  }, [])
 
   const handleDesktopClick = useCallback(() => setSelectedIcon(null), [])
 
-  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+  const handleDesktopContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
     setContextMenu({ x: e.clientX, y: e.clientY })
   }, [])
 
-  const handleRefresh = useCallback(() => {
-    setContextMenu(null)
-    document.body.style.opacity = '0.9'
-    setTimeout(() => { document.body.style.opacity = '1' }, 150)
-  }, [])
+  const selectedTheme = DESKTOP_THEMES.find((t) => t.id === desktopTheme) ?? DESKTOP_THEMES[0]
 
-  const selectedTheme = DESKTOP_THEMES.find((theme) => theme.id === desktopTheme) ?? DESKTOP_THEMES[0]
+  const buildIconContextItems = (nodeId: string): ContextMenuItem[] => {
+    const node = fsStore.nodes[nodeId]
+    if (!node) return []
+    return [
+      { label: 'Ouvrir', onClick: () => { play('open'); openFile(nodeId) } },
+      { separator: true },
+      {
+        label: 'Renommer',
+        onClick: () => {
+          const newName = prompt('Nouveau nom :', node.name)
+          if (newName && newName !== node.name) fsStore.rename(nodeId, newName)
+        },
+      },
+      {
+        label: 'Supprimer',
+        onClick: () => fsStore.remove(nodeId),
+      },
+    ]
+  }
+
+  const buildDesktopContextItems = (): ContextMenuItem[] => [
+    { label: 'Actualiser', onClick: () => { document.body.style.opacity = '0.9'; setTimeout(() => { document.body.style.opacity = '1' }, 150) } },
+    { separator: true },
+    {
+      label: 'Fonds d\'écran',
+      onClick: () => {},
+      disabled: true,
+    },
+    { separator: true },
+    {
+      label: 'Nouveau > Dossier',
+      onClick: () => {
+        const m = metricsRef.current
+        const nextCount = bureauIconsRef.current.length + 1
+        try {
+          assertGridCapacity(nextCount, m)
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "L'ecran n'est pas assez grand pour afficher toutes les applications existantes."
+          setGridError(message)
+          return
+        }
+
+        const id = fsStore.create(BUREAU_ID, { name: 'Nouveau dossier', kind: 'folder', sizeBytes: 0 })
+        const existing = { ...(iconPositions ?? {}), ...(seededPositions ?? {}) }
+        const ids = [...bureauIconsRef.current.map((b) => b.id), id]
+        const computed = computeDynamicSeedPositions(ids, m, existing)
+        setIconPositions((prev) => ({ ...prev, [id]: computed[id] }))
+      },
+    },
+    {
+      label: 'Nouveau > Document texte',
+      onClick: () => {
+        const m = metricsRef.current
+        const nextCount = bureauIconsRef.current.length + 1
+        try {
+          assertGridCapacity(nextCount, m)
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "L'ecran n'est pas assez grand pour afficher toutes les applications existantes."
+          setGridError(message)
+          return
+        }
+
+        const id = fsStore.create(BUREAU_ID, { name: 'Nouveau document.txt', kind: 'file', content: '', mimeType: 'text/plain', sizeBytes: 0 })
+        const existing = { ...(iconPositions ?? {}), ...(seededPositions ?? {}) }
+        const ids = [...bureauIconsRef.current.map((b) => b.id), id]
+        const computed = computeDynamicSeedPositions(ids, m, existing)
+        setIconPositions((prev) => ({ ...prev, [id]: computed[id] }))
+      },
+    },
+    { separator: true },
+    {
+      label: 'Propriétés',
+      onClick: () => openApp('about'),
+    },
+  ]
 
   return (
     <div
       className={styles.desktop}
-      style={{
-        backgroundColor: selectedTheme.backgroundColor,
-        backgroundImage: selectedTheme.backgroundImage,
-      }}
+      style={{ backgroundColor: selectedTheme.backgroundColor, backgroundImage: selectedTheme.backgroundImage }}
       onClick={handleDesktopClick}
-      onContextMenu={handleContextMenu}
+      onContextMenu={handleDesktopContextMenu}
     >
       <div
         className={styles.iconsGrid}
-        style={{
-          '--cell-w': `${metrics.cellW}px`,
-          '--cell-h': `${metrics.cellH}px`,
-        } as React.CSSProperties}
+        style={{ '--cell-w': `${metrics.cellW}px`, '--cell-h': `${metrics.cellH}px` } as React.CSSProperties}
       >
-        {activeIcons.map((icon) => {
+        {!gridError && bureauIcons.map((icon) => {
           const isDragging = draggingPixel?.id === icon.id
-          const isPledged = pledgedApps.includes(icon.app)
+          const iconImage = getIconImage(icon)
+          const label = getIconLabel(icon)
           let left: number
           let top: number
 
@@ -380,7 +461,7 @@ export function Desktop() {
             left = draggingPixel.x
             top = draggingPixel.y
           } else {
-            const pos = getGridPos(icon.id, icon.defaultPos)
+            const pos = getGridPos(icon.id)
             const pixel = gridToPixel(pos.col, pos.row, metrics)
             left = pixel.x
             top = pixel.y
@@ -389,78 +470,44 @@ export function Desktop() {
           return (
             <div
               key={icon.id}
-              className={`${styles.icon} ${selectedIcon === icon.id ? styles.selected : ''} ${isDragging ? styles.dragging : ''} ${isPledged ? styles.pledged : ''}`}
+              className={`${styles.icon} ${selectedIcon === icon.id ? styles.selected : ''} ${isDragging ? styles.dragging : ''}`}
               style={{ left, top, width: metrics.cellW, height: metrics.cellH }}
               onPointerDown={(e) => handleIconPointerDown(e, icon)}
               onClick={(e) => handleIconClick(e, icon)}
+              onContextMenu={(e) => handleIconContextMenu(e, icon)}
               onDragStart={(e) => e.preventDefault()}
-              title={isPledged ? `${icon.label} (engagé)` : `Double-cliquer pour ouvrir ${icon.label}`}
+              title={`Double-cliquer pour ouvrir ${label}`}
             >
-              {icon.image ? (
-                <img src={icon.image} alt={icon.label} className={styles.iconImage} draggable={false} />
+              {iconImage ? (
+                <img src={iconImage} alt={label} className={styles.iconImage} draggable={false} />
               ) : (
-                <span className={styles.iconEmoji}>{icon.icon}</span>
+                <img src={ICON_MAP.folder} alt={label} className={styles.iconImage} draggable={false} />
               )}
-              <span className={styles.iconLabel}>{icon.label}</span>
-              {isPledged && <span className={styles.pledgeLock}>🔒</span>}
+              <span className={styles.iconLabel}>{label}</span>
             </div>
           )
         })}
       </div>
 
-      {tooSmall && (
-        <div className={styles.tooSmallOverlay}>
-          <div className={styles.tooSmallDialog}>
-            <div className={styles.tooSmallTitleBar}>
-              <span>Résolution insuffisante</span>
-            </div>
+      {gridError && (
+        <div className={styles.tooSmallOverlay} onClick={() => setGridError(null)}>
+          <div className={styles.tooSmallDialog} onClick={(e) => e.stopPropagation()} role="alert" aria-live="assertive">
+            <div className={styles.tooSmallTitleBar}>Espace insuffisant</div>
             <div className={styles.tooSmallBody}>
-              <img src="/img/Windows_95_FOLDER.png" alt="" className={styles.tooSmallIcon} />
-              <p>
-                La fenêtre est trop petite pour afficher toutes les icônes du bureau ({activeIcons.length} icônes requises).
-                Agrandissez la fenêtre pour continuer.
-              </p>
+              <img src={ICON_MAP['dialog-warning']} alt="Avertissement" className={styles.tooSmallIcon} />
+              <p>{gridError}</p>
             </div>
           </div>
         </div>
       )}
 
       {contextMenu && (
-        <div
-          className={styles.contextMenu}
-          style={{ left: contextMenu.x, top: contextMenu.y }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className={styles.contextMenuItem} onClick={handleRefresh}>
-            Actualiser
-          </div>
-          <div className={styles.contextSeparator} />
-          <div className={styles.contextSubmenuTrigger}>
-            <div className={styles.contextMenuItem}>
-              Fonds d'ecran
-              <span className={styles.contextMenuArrow}>▶</span>
-            </div>
-            <div className={styles.contextSubmenu}>
-              {DESKTOP_THEMES.map((theme) => (
-                <div
-                  key={theme.id}
-                  className={styles.contextMenuItem}
-                  onClick={() => {
-                    setDesktopTheme(theme.id)
-                    setContextMenu(null)
-                  }}
-                >
-                  {desktopTheme === theme.id ? '✓ ' : ''}
-                  {theme.label}
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className={styles.contextSeparator} />
-          <div className={styles.contextMenuItem} onClick={() => { openWindow('about'); setContextMenu(null) }}>
-            Propriétés
-          </div>
-        </div>
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          items={contextMenu.nodeId ? buildIconContextItems(contextMenu.nodeId) : buildDesktopContextItems()}
+          onClose={() => setContextMenu(null)}
+        />
       )}
     </div>
   )

@@ -2,18 +2,19 @@ import { lazy, Suspense, useState } from 'react'
 import './App.css'
 import { Desktop } from './components/Desktop/Desktop'
 import { BootScreen } from './components/BootScreen/BootScreen'
+import { ShutdownScreen } from './components/BootScreen/ShutdownScreen'
 import { Taskbar } from './components/Taskbar/Taskbar'
 import { Window } from './components/Window/Window'
 import { useWindowStore } from './store/windowStore'
 import { useCasinoStore } from './store/casinoStore'
 import { GameOverDialog } from './components/GameOverDialog'
-import type { AppType } from './data/filesystem'
+import type { AppId } from './apps/types'
 
+const NotepadApp = lazy(() =>
+  import('./components/apps/NotepadApp').then((m) => ({ default: m.NotepadApp }))
+)
 const ProjectViewer = lazy(() =>
   import('./components/apps/ProjectViewer').then((m) => ({ default: m.ProjectViewer }))
-)
-const TextEditorApp = lazy(() =>
-  import('./components/apps/TextEditorApp').then((m) => ({ default: m.TextEditorApp }))
 )
 const TerminalApp = lazy(() =>
   import('./components/apps/TerminalApp').then((m) => ({ default: m.TerminalApp }))
@@ -26,9 +27,6 @@ const FileExplorer = lazy(() =>
 )
 const Minesweeper = lazy(() =>
   import('./components/apps/Minesweeper').then((m) => ({ default: m.Minesweeper }))
-)
-const MoviesApp = lazy(() =>
-  import('./components/apps/MoviesApp').then((m) => ({ default: m.MoviesApp }))
 )
 const MailApp = lazy(() =>
   import('./components/apps/MailApp').then((m) => ({ default: m.MailApp }))
@@ -45,76 +43,63 @@ const CasinoApp = lazy(() =>
 const BankApp = lazy(() =>
   import('./components/apps/BankApp').then((m) => ({ default: m.BankApp }))
 )
+const RunDialog = lazy(() =>
+  import('./components/apps/RunDialog').then((m) => ({ default: m.RunDialog }))
+)
 
-function AppContent({ app, props, windowId }: { app: AppType; props?: Record<string, unknown>; windowId: string }) {
+function AppContent({ app, props, windowId }: { app: AppId; props: Record<string, unknown>; windowId: string }) {
   switch (app) {
+    case 'notepad':
+      return <NotepadApp windowId={windowId} fileId={props.fileId as string | undefined} />
     case 'project-viewer':
-      return <ProjectViewer projectId={props?.projectId as string | undefined} />
-    case 'skills':
-      return <TextEditorApp variant="skills" />
-    case 'resume':
-      return <TextEditorApp variant="resume" />
-    case 'notes':
-      return <TextEditorApp variant="notes" />
+      return <ProjectViewer fileId={props.fileId as string | undefined} projectId={props.projectId as string | undefined} />
     case 'terminal':
-      return <TerminalApp />
+      return <TerminalApp windowId={windowId} />
     case 'about':
-      return <AboutDialog />
-    case 'file-explorer':
-    case 'projects':
-      return <FileExplorer initialFolderId={props?.folderId as string | undefined} />
+      return <AboutDialog windowId={windowId} />
+    case 'explorer':
+      return <FileExplorer windowId={windowId} folderId={props.folderId as string | undefined} />
     case 'minesweeper':
       return <Minesweeper windowId={windowId} />
-    case 'movies':
-      return <MoviesApp />
     case 'mail':
       return <MailApp />
     case 'paint':
-      return <PaintApp />
+      return <PaintApp windowId={windowId} fileId={props.fileId as string | undefined} />
     case 'media-player':
-      return <MediaPlayer />
+      return <MediaPlayer fileId={props.fileId as string | undefined} />
     case 'casino':
       return <CasinoApp />
     case 'bank':
       return <BankApp />
+    case 'run':
+      return <RunDialog windowId={windowId} />
     default:
       return <div style={{ padding: 16 }}>Application inconnue.</div>
   }
 }
 
+type AppPhase = 'boot' | 'desktop' | 'shutdown'
+
 export default function App() {
   const { windows } = useWindowStore()
   const { isBankrupt } = useCasinoStore()
-  const [isBooted, setIsBooted] = useState(false)
+  const [phase, setPhase] = useState<AppPhase>('boot')
 
-  const handleBoot = () => {
-    setIsBooted(true)
-  }
+  const handleBoot = () => setPhase('desktop')
 
   const handleShutdown = () => {
     useWindowStore.setState({ windows: [], activeWindowId: null })
-    setIsBooted(false)
+    setPhase('shutdown')
   }
 
-  if (!isBooted) {
-    return <BootScreen onBoot={handleBoot} />
-  }
+  if (phase === 'boot') return <BootScreen onBoot={handleBoot} />
+  if (phase === 'shutdown') return <ShutdownScreen onRestart={() => setPhase('boot')} />
 
   return (
     <>
       <Desktop />
       {windows.map((win) => (
-        <Window
-          key={win.id}
-          id={win.id}
-          title={win.title}
-          icon={win.icon}
-          isMinimized={win.isMinimized}
-          isMaximized={win.isMaximized}
-          zIndex={win.zIndex}
-          position={win.position}
-          size={win.size}
-        >
+        <Window key={win.id} id={win.id} title={win.title} iconKey={win.iconKey} isMinimized={win.isMinimized} isMaximized={win.isMaximized} zIndex={win.zIndex} position={win.position} size={win.size}>
           <Suspense fallback={<div style={{ padding: 16 }}>Chargement...</div>}>
             <AppContent app={win.app} props={win.props} windowId={win.id} />
           </Suspense>

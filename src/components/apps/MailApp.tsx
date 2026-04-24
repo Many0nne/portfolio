@@ -32,9 +32,8 @@ export function MailApp() {
   return (
     <div className={styles.container}>
       <div className={styles.toolbar}>
-        <button className={styles.toolBtn}>📝 Nouveau</button>
-        <button className={styles.toolBtn}>↩ Répondre</button>
-        <button className={styles.toolBtn}>🗑 Supprimer</button>
+        <button className={styles.toolBtn} disabled title="Non implémenté">Nouveau</button>
+        <button className={styles.toolBtn} disabled title="Non implémenté">Répondre</button>
       </div>
 
       <div className={styles.body}>

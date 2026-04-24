@@ -1,0 +1,56 @@
+.dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  font-size: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.description {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.label {
+  flex-shrink: 0;
+  font-size: 11px;
+}
+
+.input {
+  flex: 1;
+  font-size: 11px;
+  padding: 2px 4px;
+  border: var(--border-sunken-outer);
+  font-family: inherit;
+}
+
+.error {
+  color: #cc0000;
+  font-size: 11px;
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 4px;
+}

@@ -6,26 +6,31 @@ export function useKeyboardShortcuts(onToggleStart: () => void) {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      // Win / Ctrl+Esc → toggle start menu
+      // Ctrl+Esc → toggle start menu
       if (e.key === 'Escape' && e.ctrlKey) {
         e.preventDefault()
         onToggleStart()
         return
       }
 
-      // Win+E → file explorer
-      if (e.key === 'e' && e.metaKey) {
+      // Ctrl+Alt+E → Explorer
+      if (e.key === 'e' && e.ctrlKey && e.altKey) {
         e.preventDefault()
-        useWindowStore.getState().openWindow('file-explorer')
+        useWindowStore.getState().openApp('explorer')
         return
       }
 
-      // Win+D → minimize all
-      if (e.key === 'd' && e.metaKey) {
+      // Ctrl+Alt+D → Show desktop (minimize all)
+      if (e.key === 'd' && e.ctrlKey && e.altKey) {
         e.preventDefault()
-        windows.forEach((w) => {
-          if (!w.isMinimized) minimizeWindow(w.id)
-        })
+        windows.forEach((w) => { if (!w.isMinimized) minimizeWindow(w.id) })
+        return
+      }
+
+      // Ctrl+Alt+R → Run dialog
+      if (e.key === 'r' && e.ctrlKey && e.altKey) {
+        e.preventDefault()
+        useWindowStore.getState().openApp('run')
         return
       }
 

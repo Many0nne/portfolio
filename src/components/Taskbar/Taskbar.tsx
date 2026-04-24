@@ -19,40 +19,29 @@ export function Taskbar({ onShutdown }: TaskbarProps) {
   const { unlocked, credits, debt } = useCasinoStore()
 
   const toggleStart = useCallback(() => setStartOpen((v) => !v), [])
-
   useKeyboardShortcuts(toggleStart)
 
-  const handleTrayClick = useCallback(
-    (id: string, isMinimized: boolean, isActive: boolean) => {
-      if (isMinimized || !isActive) {
-        useWindowStore.setState((s) => ({
-          windows: s.windows.map((w) => (w.id === id ? { ...w, isMinimized: false } : w)),
-          activeWindowId: id,
-        }))
-        focusWindow(id)
-      } else {
-        minimizeWindow(id)
-      }
-    },
-    [focusWindow, minimizeWindow]
-  )
+  const handleTrayClick = useCallback((id: string, isMinimized: boolean, isActive: boolean) => {
+    if (isMinimized || !isActive) {
+      useWindowStore.setState((s) => ({
+        windows: s.windows.map((w) => (w.id === id ? { ...w, isMinimized: false } : w)),
+        activeWindowId: id,
+      }))
+      focusWindow(id)
+    } else {
+      minimizeWindow(id)
+    }
+  }, [focusWindow, minimizeWindow])
 
-  // Close start menu on outside click
   useEffect(() => {
     if (!startOpen) return
     const handler = (e: MouseEvent) => {
       const target = e.target as HTMLElement
-      if (!target.closest('[data-startmenu]') && !target.closest('[data-startbtn]')) {
-        setStartOpen(false)
-      }
+      if (!target.closest('[data-startmenu]') && !target.closest('[data-startbtn]')) setStartOpen(false)
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [startOpen])
-
-  const toggleSound = useCallback(() => {
-    setSoundEnabled((v) => !v)
-  }, [setSoundEnabled])
 
   return (
     <>
@@ -62,11 +51,7 @@ export function Taskbar({ onShutdown }: TaskbarProps) {
         </div>
       )}
       <div className={styles.taskbar}>
-        <button
-          className={`${styles.startBtn} ${startOpen ? styles.active : ''}`}
-          onClick={toggleStart}
-          data-startbtn
-        >
+        <button className={`${styles.startBtn} ${startOpen ? styles.active : ''}`} onClick={toggleStart} data-startbtn>
           <img src="/img/windows_95_logo.png" alt="Windows 95" style={{ width: '20px', height: '20px' }} className={styles.startIcon} />
           Démarrer
         </button>
@@ -81,7 +66,7 @@ export function Taskbar({ onShutdown }: TaskbarProps) {
               onClick={() => handleTrayClick(w.id, w.isMinimized, w.id === activeWindowId)}
               title={w.title}
             >
-              {w.icon && <AppIcon name={w.icon} size={14} />}
+              {w.iconKey && <AppIcon name={w.iconKey} size={14} />}
               <span className={styles.trayItemLabel}>{w.title}</span>
             </div>
           ))}
@@ -89,7 +74,7 @@ export function Taskbar({ onShutdown }: TaskbarProps) {
 
         <TaskbarClock
           soundEnabled={soundEnabled}
-          onToggleSound={toggleSound}
+          onToggleSound={() => setSoundEnabled((v) => !v)}
           credits={unlocked ? credits : undefined}
           debt={unlocked ? debt : undefined}
         />

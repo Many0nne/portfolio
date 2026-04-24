@@ -1,0 +1,13 @@
+export type AppId =
+  | 'notepad'
+  | 'explorer'
+  | 'terminal'
+  | 'paint'
+  | 'media-player'
+  | 'mail'
+  | 'minesweeper'
+  | 'project-viewer'
+  | 'casino'
+  | 'bank'
+  | 'about'
+  | 'run'

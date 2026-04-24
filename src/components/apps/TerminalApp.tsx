@@ -10,10 +10,6 @@ interface Line {
   type: 'output' | 'input' | 'error'
 }
 
-interface PendingPin {
-  nodeId: string
-}
-
 type FsStoreState = ReturnType<typeof useFsStore.getState>
 
 const WELCOME: Line[] = [
@@ -52,7 +48,6 @@ export function TerminalApp({ windowId }: TerminalProps) {
   const [input, setInput] = useState('')
   const [history, setHistory] = useState<string[]>([])
   const [historyIndex, setHistoryIndex] = useState(-1)
-  const [awaitingPin, setAwaitingPin] = useState<PendingPin | null>(null)
 
   const outputRef = useRef<HTMLDivElement>(null)
   const shouldAutoScrollRef = useRef(true)
@@ -90,7 +85,6 @@ export function TerminalApp({ windowId }: TerminalProps) {
   const resolvePathArg = useCallback((arg: string): { ok: true; node: FsNode } | { ok: false; msg: string } => {
     const result = fsStore.resolvePath(arg, cwdId)
     if (!result.ok) {
-      if (result.reason === 'locked') return { ok: false, msg: 'Accès refusé : dossier protégé.' }
       return { ok: false, msg: `Le chemin spécifié est introuvable.` }
     }
     return result
@@ -172,14 +166,6 @@ export function TerminalApp({ windowId }: TerminalProps) {
       }
       const result = fsStore.resolvePath(arg, cwdId)
       if (!result.ok) {
-        if (result.reason === 'locked') {
-          const target = findLockedNode(arg, cwdId, fsStore)
-          if (target) {
-            setAwaitingPin({ nodeId: target.id })
-            push(inputLine, out('Dossier protégé. Entrez le PIN :'))
-            return
-          }
-        }
         push(inputLine, err('Le chemin spécifié est introuvable.'), out(''))
         return
       }
@@ -381,12 +367,11 @@ export function TerminalApp({ windowId }: TerminalProps) {
       err('ou externe, un programme exécutable ou un fichier de commandes.'),
       out('')
     )
-  }, [input, history, awaitingPin, handleEcho, getPromptPath, cwdId, fsStore, openApp, closeWindow, windowId, resolvePathArg, push])
+  }, [input, history, handleEcho, getPromptPath, cwdId, fsStore, openApp, closeWindow, windowId, resolvePathArg, push])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Tab') {
       e.preventDefault()
-      if (awaitingPin) return
       const raw = input.trim()
       if (!raw) return
       const firstSpace = raw.indexOf(' ')
@@ -428,9 +413,9 @@ export function TerminalApp({ windowId }: TerminalProps) {
       if (next < 0) { setHistoryIndex(-1); setInput('') }
       else { setHistoryIndex(next); setInput(history[next] ?? '') }
     }
-  }, [awaitingPin, input, cwdId, fsStore, history, historyIndex])
+  }, [input, cwdId, fsStore, history, historyIndex])
 
-  const prompt = awaitingPin ? 'PIN:' : `${getPromptPath()}>`
+  const prompt = `${getPromptPath()}>`
 
   return (
     <div
@@ -453,7 +438,7 @@ export function TerminalApp({ windowId }: TerminalProps) {
         <input
           ref={inputRef}
           className={styles.input}
-          type={awaitingPin ? 'password' : 'text'}
+          type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -464,19 +449,4 @@ export function TerminalApp({ windowId }: TerminalProps) {
       </form>
     </div>
   )
-}
-
-function findLockedNode(path: string, cwdId: string, fsStore: FsStoreState): FsNode | null {
-  const normalized = path.replace(/\//g, '\\')
-  let currentId = /^[cC]:/.test(normalized) ? fsStore.rootId : cwdId
-  const segments = (normalized.replace(/^[cC]:\\?/, '').split('\\').filter(Boolean))
-
-  for (const seg of segments) {
-    if (seg === '.' || seg === '..') continue
-    const children = fsStore.getChildren(currentId)
-    const child = children.find((n) => n.name.toLowerCase() === seg.toLowerCase())
-    if (!child) return null
-    currentId = child.id
-  }
-  return null
 }

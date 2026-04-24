@@ -126,7 +126,7 @@ export const useWindowStore = create<Store>((set, get) => ({
     const assoc = resolveAssociation(node)
     if (!assoc) return null
     return get().openWindow(assoc.app, {
-      fileId: node.kind === 'file' ? fileId : undefined,
+      fileId: node.mimeType !== 'application/x-shortcut' && node.kind === 'file' ? fileId : undefined,
       props: assoc.props ?? {},
     })
   },

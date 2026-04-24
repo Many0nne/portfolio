@@ -87,7 +87,7 @@ interface MinesweeperProps {
 }
 
 export function Minesweeper({ windowId }: MinesweeperProps) {
-  const { updateSize } = useWindowStore()
+  const { resizeWindow } = useWindowStore()
   const [mode, setMode] = useState<Mode>('beginner')
   const [board, setBoard] = useState<CellState[][] | null>(null)
   const [status, setStatus] = useState<GameStatus>('idle')
@@ -108,8 +108,8 @@ export function Minesweeper({ windowId }: MinesweeperProps) {
     setFlagsLeft(MODES[nextMode].mines)
     setSeconds(0)
     setMode(nextMode)
-    updateSize(windowId, { width: MODES[nextMode].width, height: MODES[nextMode].height })
-  }, [windowId, updateSize])
+    resizeWindow(windowId, { width: MODES[nextMode].width, height: MODES[nextMode].height })
+  }, [windowId, resizeWindow])
 
   const handleSmileyClick = useCallback(() => {
     const nextMode = MODE_CYCLE[(MODE_CYCLE.indexOf(mode) + 1) % MODE_CYCLE.length]

@@ -2,6 +2,7 @@ import { useRef, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import styles from './Window.module.css'
 import { useWindowStore } from '../../store/windowStore'
+import type { WindowState } from '../../store/windowStore'
 import { useSound } from '../../hooks/useSound'
 import { AppIcon } from '../shared/AppIcon'
 
@@ -9,11 +10,13 @@ interface WindowProps {
   id: string
   title: string
   iconKey?: string
-  isMinimized: boolean
-  isMaximized: boolean
+  state: WindowState
   zIndex: number
   position: { x: number; y: number }
   size: { width: number; height: number }
+  resizable?: boolean
+  minimizable?: boolean
+  maximizable?: boolean
   children: ReactNode
 }
 
@@ -22,11 +25,17 @@ type ResizeHandle = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
 const MIN_WIDTH = 200
 const MIN_HEIGHT = 120
 
-export function Window({ id, title, iconKey, isMinimized, isMaximized, zIndex, position, size, children }: WindowProps) {
-  const { focusWindow, closeWindow, minimizeWindow, maximizeWindow, updatePosition, updateSize, activeWindowId } = useWindowStore()
+export function Window({
+  id, title, iconKey, state, zIndex, position, size,
+  resizable = true, minimizable = true, maximizable = true,
+  children,
+}: WindowProps) {
+  const { focusWindow, closeWindow, minimizeWindow, maximizeWindow, restoreWindow, moveWindow, resizeWindow, activeWindowId } = useWindowStore()
   const { play } = useSound()
   const dragOffset = useRef<{ x: number; y: number } | null>(null)
   const isActive = activeWindowId === id
+  const isMinimized = state === 'minimized'
+  const isMaximized = state === 'maximized'
 
   const handleMouseDown = useCallback(() => { focusWindow(id) }, [id, focusWindow])
 
@@ -37,7 +46,7 @@ export function Window({ id, title, iconKey, isMinimized, isMaximized, zIndex, p
 
     const onMove = (me: MouseEvent) => {
       if (!dragOffset.current) return
-      updatePosition(id, {
+      moveWindow(id, {
         x: Math.max(0, Math.min(me.clientX - dragOffset.current.x, window.innerWidth - size.width)),
         y: Math.max(0, Math.min(me.clientY - dragOffset.current.y, window.innerHeight - 80)),
       })
@@ -51,7 +60,7 @@ export function Window({ id, title, iconKey, isMinimized, isMaximized, zIndex, p
 
     document.addEventListener('mousemove', onMove)
     document.addEventListener('mouseup', onUp)
-  }, [id, isMaximized, position, size, updatePosition])
+  }, [id, isMaximized, position, size, moveWindow])
 
   const onResizeMouseDown = useCallback((e: React.MouseEvent, handle: ResizeHandle) => {
     e.preventDefault()
@@ -85,8 +94,8 @@ export function Window({ id, title, iconKey, isMinimized, isMaximized, zIndex, p
         newH = startSize.height - delta
       }
 
-      updatePosition(id, { x: newX, y: newY })
-      updateSize(id, { width: newW, height: newH })
+      moveWindow(id, { x: newX, y: newY })
+      resizeWindow(id, { width: newW, height: newH })
     }
 
     const onUp = () => {
@@ -96,11 +105,24 @@ export function Window({ id, title, iconKey, isMinimized, isMaximized, zIndex, p
 
     document.addEventListener('mousemove', onMove)
     document.addEventListener('mouseup', onUp)
-  }, [id, isMaximized, position, size, updatePosition, updateSize])
+  }, [id, isMaximized, position, size, moveWindow, resizeWindow])
 
-  const handleClose = useCallback((e: React.MouseEvent) => { e.stopPropagation(); play('close'); closeWindow(id) }, [id, closeWindow, play])
-  const handleMinimize = useCallback((e: React.MouseEvent) => { e.stopPropagation(); minimizeWindow(id) }, [id, minimizeWindow])
-  const handleMaximize = useCallback((e: React.MouseEvent) => { e.stopPropagation(); maximizeWindow(id) }, [id, maximizeWindow])
+  const handleClose = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    play('close')
+    closeWindow(id)
+  }, [id, closeWindow, play])
+
+  const handleMinimize = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    minimizeWindow(id)
+  }, [id, minimizeWindow])
+
+  const handleMaximize = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (isMaximized) restoreWindow(id)
+    else maximizeWindow(id)
+  }, [id, isMaximized, maximizeWindow, restoreWindow])
 
   const style: React.CSSProperties = isMaximized
     ? { zIndex }
@@ -127,7 +149,7 @@ export function Window({ id, title, iconKey, isMinimized, isMaximized, zIndex, p
       role="dialog"
       aria-label={title}
     >
-      {!isMaximized && handles.map((h) => (
+      {resizable && !isMaximized && handles.map((h) => (
         <div
           key={h}
           className={HANDLE_CLASSES[h]}
@@ -138,13 +160,13 @@ export function Window({ id, title, iconKey, isMinimized, isMaximized, zIndex, p
       <div
         className={`title-bar ${styles.titleBar} ${!isActive ? `inactive ${styles.inactive}` : ''}`}
         onMouseDown={onTitleBarMouseDown}
-        onDoubleClick={handleMaximize}
+        onDoubleClick={maximizable ? handleMaximize : undefined}
       >
         {iconKey && <AppIcon name={iconKey} size={16} className={styles.titleIcon} />}
         <span className={`title-bar-text ${styles.titleText}`}>{title}</span>
         <div className={`title-bar-controls ${styles.titleButtons}`}>
-          <button className={styles.titleBtn} onClick={handleMinimize} aria-label="Minimize" title="Réduire" />
-          <button className={styles.titleBtn} onClick={handleMaximize} aria-label={isMaximized ? 'Restore' : 'Maximize'} title={isMaximized ? 'Restaurer' : 'Agrandir'} />
+          {minimizable && <button className={styles.titleBtn} onClick={handleMinimize} aria-label="Minimize" title="Réduire" />}
+          {maximizable && <button className={styles.titleBtn} onClick={handleMaximize} aria-label={isMaximized ? 'Restore' : 'Maximize'} title={isMaximized ? 'Restaurer' : 'Agrandir'} />}
           <button className={styles.titleBtn} onClick={handleClose} aria-label="Close" title="Fermer" />
         </div>
       </div>

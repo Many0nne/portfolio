@@ -6,30 +6,25 @@ import { useWindowStore } from '../../store/windowStore'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { AppIcon } from '../shared/AppIcon'
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
+import type { WindowState } from '../../store/windowStore'
 
-interface TaskbarProps {
-  onShutdown: () => void
-}
-
-export function Taskbar({ onShutdown }: TaskbarProps) {
+export function Taskbar() {
   const [startOpen, setStartOpen] = useState(false)
   const [soundEnabled, setSoundEnabled] = useLocalStorage('win95-sound', true)
-  const { windows, focusWindow, minimizeWindow, activeWindowId } = useWindowStore()
+  const { windows, focusWindow, minimizeWindow, restoreWindow, activeWindowId } = useWindowStore()
 
   const toggleStart = useCallback(() => setStartOpen((v) => !v), [])
   useKeyboardShortcuts(toggleStart)
 
-  const handleTrayClick = useCallback((id: string, isMinimized: boolean, isActive: boolean) => {
-    if (isMinimized || !isActive) {
-      useWindowStore.setState((s) => ({
-        windows: s.windows.map((w) => (w.id === id ? { ...w, isMinimized: false } : w)),
-        activeWindowId: id,
-      }))
+  const handleTrayClick = useCallback((id: string, state: WindowState, isActive: boolean) => {
+    if (state === 'minimized') {
+      restoreWindow(id)
+    } else if (!isActive) {
       focusWindow(id)
     } else {
       minimizeWindow(id)
     }
-  }, [focusWindow, minimizeWindow])
+  }, [focusWindow, minimizeWindow, restoreWindow])
 
   useEffect(() => {
     if (!startOpen) return
@@ -45,7 +40,7 @@ export function Taskbar({ onShutdown }: TaskbarProps) {
     <>
       {startOpen && (
         <div data-startmenu>
-          <StartMenu onClose={() => setStartOpen(false)} onShutdown={onShutdown} />
+          <StartMenu onClose={() => setStartOpen(false)} />
         </div>
       )}
       <div className={styles.taskbar}>
@@ -60,8 +55,8 @@ export function Taskbar({ onShutdown }: TaskbarProps) {
           {windows.map((w) => (
             <div
               key={w.id}
-              className={`${styles.trayItem} ${w.id === activeWindowId && !w.isMinimized ? styles.active : ''}`}
-              onClick={() => handleTrayClick(w.id, w.isMinimized, w.id === activeWindowId)}
+              className={`${styles.trayItem} ${w.id === activeWindowId && w.state !== 'minimized' ? styles.active : ''}`}
+              onClick={() => handleTrayClick(w.id, w.state, w.id === activeWindowId)}
               title={w.title}
             >
               {w.iconKey && <AppIcon name={w.iconKey} size={14} />}

@@ -41,7 +41,7 @@ interface TerminalProps {
 
 export function TerminalApp({ windowId }: TerminalProps) {
   const fsStore = useFsStore() as FsStoreState
-  const { openApp, closeWindow } = useWindowStore()
+  const { openWindow, closeWindow } = useWindowStore()
   const rootId = fsStore.rootId
   const [cwdId, setCwdId] = useState(rootId)
   const [lines, setLines] = useState<Line[]>(WELCOME)
@@ -298,7 +298,7 @@ export function TerminalApp({ windowId }: TerminalProps) {
       if (!r.ok) { push(inputLine, err(`Fichier introuvable : '${arg}'`), out('')); return }
       const assoc = resolveAssociation(r.node)
       if (!assoc) { push(inputLine, err('Aucune application associée.'), out('')); return }
-      openApp(assoc.app, { fileId: r.node.kind === 'file' ? r.node.id : undefined, props: assoc.props ?? {} })
+      openWindow(assoc.app, { fileId: r.node.kind === 'file' ? r.node.id : undefined, props: assoc.props ?? {} })
       push(inputLine, out(`Lancement de ${r.node.name}...`), out(''))
       return
     }
@@ -367,7 +367,7 @@ export function TerminalApp({ windowId }: TerminalProps) {
       err('ou externe, un programme exécutable ou un fichier de commandes.'),
       out('')
     )
-  }, [input, history, handleEcho, getPromptPath, cwdId, fsStore, openApp, closeWindow, windowId, resolvePathArg, push])
+  }, [input, history, handleEcho, getPromptPath, cwdId, fsStore, openWindow, closeWindow, windowId, resolvePathArg, push])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Tab') {

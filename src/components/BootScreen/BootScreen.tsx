@@ -1,13 +1,11 @@
 import { useState } from 'react'
 import styles from './BootScreen.module.css'
+import { useWindowStore } from '../../store/windowStore'
 
 type Phase = 'bios' | 'loading' | 'done'
 
-interface BootScreenProps {
-  onBoot: () => void
-}
-
-export function BootScreen({ onBoot }: BootScreenProps) {
+export function BootScreen() {
+  const boot = useWindowStore((s) => s.boot)
   const [phase, setPhase] = useState<Phase>('bios')
   const [progress, setProgress] = useState(0)
   const [started, setStarted] = useState(false)
@@ -22,7 +20,7 @@ export function BootScreen({ onBoot }: BootScreenProps) {
         setProgress((p) => {
           if (p >= 100) {
             clearInterval(interval)
-            setTimeout(onBoot, 200)
+            setTimeout(boot, 200)
             return 100
           }
           return p + 8

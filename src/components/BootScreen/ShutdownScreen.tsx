@@ -1,10 +1,9 @@
 import styles from './ShutdownScreen.module.css'
+import { useWindowStore } from '../../store/windowStore'
 
-interface ShutdownScreenProps {
-  onRestart: () => void
-}
+export function ShutdownScreen() {
+  const restart = useWindowStore((s) => s.restart)
 
-export function ShutdownScreen({ onRestart }: ShutdownScreenProps) {
   return (
     <div className={styles.screen}>
       <div className={styles.box}>
@@ -12,7 +11,7 @@ export function ShutdownScreen({ onRestart }: ShutdownScreenProps) {
         <p className={styles.message}>
           Vous pouvez maintenant éteindre votre ordinateur en toute sécurité.
         </p>
-        <button className={styles.restartBtn} onClick={() => { localStorage.clear(); onRestart(); }}>
+        <button className={styles.restartBtn} onClick={restart}>
           Redémarrer
         </button>
       </div>

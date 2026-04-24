@@ -27,7 +27,7 @@ interface RunDialogProps {
 export function RunDialog({ windowId }: RunDialogProps) {
   const [value, setValue] = useState('')
   const [error, setError] = useState('')
-  const { openApp, closeWindow } = useWindowStore()
+  const { openWindow, closeWindow } = useWindowStore()
   const fsStore = useFsStore()
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -39,7 +39,7 @@ export function RunDialog({ windowId }: RunDialogProps) {
 
     const lower = trimmed.toLowerCase()
     if (APP_ALIASES[lower]) {
-      openApp(APP_ALIASES[lower])
+      openWindow(APP_ALIASES[lower])
       closeWindow(windowId)
       return
     }
@@ -49,7 +49,7 @@ export function RunDialog({ windowId }: RunDialogProps) {
     if (result.ok) {
       const assoc = resolveAssociation(result.node)
       if (assoc) {
-        openApp(assoc.app, { fileId: result.node.kind === 'file' ? result.node.id : undefined, props: assoc.props ?? {} })
+        openWindow(assoc.app, { fileId: result.node.kind === 'file' ? result.node.id : undefined, props: assoc.props ?? {} })
         closeWindow(windowId)
         return
       }

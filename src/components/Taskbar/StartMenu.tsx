@@ -9,18 +9,17 @@ import type { AppId } from '../../apps/types'
 
 interface StartMenuProps {
   onClose: () => void
-  onShutdown: () => void
 }
 
 type SubmenuKey = 'projects' | 'programmes' | 'jeux' | null
 
-export function StartMenu({ onClose, onShutdown }: StartMenuProps) {
+export function StartMenu({ onClose }: StartMenuProps) {
   const [openSubmenu, setOpenSubmenu] = useState<SubmenuKey>(null)
-  const { openApp, openFile } = useWindowStore()
+  const { openWindow, openFile, shutdown } = useWindowStore()
   const fsStore = useFsStore()
 
   const open = (app: AppId, opts?: { fileId?: string; props?: Record<string, unknown> }) => {
-    openApp(app, opts)
+    openWindow(app, opts)
     onClose()
   }
 
@@ -117,7 +116,7 @@ export function StartMenu({ onClose, onShutdown }: StartMenuProps) {
 
         <div className={styles.menuSeparator} />
 
-        <div className={styles.menuItem} onMouseEnter={() => setOpenSubmenu(null)} onClick={() => { onClose(); onShutdown() }}>
+        <div className={styles.menuItem} onMouseEnter={() => setOpenSubmenu(null)} onClick={() => { onClose(); shutdown() }}>
           <span className={styles.menuItemIcon}>■</span>
           Éteindre…
         </div>

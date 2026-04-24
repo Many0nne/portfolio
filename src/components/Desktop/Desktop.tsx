@@ -171,7 +171,7 @@ function getIconLabel(node: FsNode): string {
 }
 
 export function Desktop() {
-  const { openApp, openFile } = useWindowStore()
+  const { openWindow, openFile } = useWindowStore()
   const { play } = useSound()
   const fsStore = useFsStore()
   const [desktopTheme] = useLocalStorage<DesktopThemeId>('win95-desktop-theme-v1', 'emerald')
@@ -428,7 +428,7 @@ export function Desktop() {
     { separator: true },
     {
       label: 'Propriétés',
-      onClick: () => openApp('about'),
+      onClick: () => openWindow('about'),
     },
   ]
 

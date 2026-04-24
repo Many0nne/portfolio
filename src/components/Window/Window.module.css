@@ -97,14 +97,14 @@
 /* Resize handles */
 .resizeHandle {
   position: absolute;
-  z-index: 1;
+  z-index: 10;
 }
 
-.resizeHandle.n  { top: -3px; left: 6px; right: 6px; height: 6px; cursor: n-resize; }
-.resizeHandle.s  { bottom: -3px; left: 6px; right: 6px; height: 6px; cursor: s-resize; }
-.resizeHandle.e  { right: -3px; top: 6px; bottom: 6px; width: 6px; cursor: e-resize; }
-.resizeHandle.w  { left: -3px; top: 6px; bottom: 6px; width: 6px; cursor: w-resize; }
-.resizeHandle.ne { top: -3px; right: -3px; width: 8px; height: 8px; cursor: ne-resize; }
-.resizeHandle.nw { top: -3px; left: -3px; width: 8px; height: 8px; cursor: nw-resize; }
-.resizeHandle.se { bottom: -3px; right: -3px; width: 8px; height: 8px; cursor: se-resize; }
-.resizeHandle.sw { bottom: -3px; left: -3px; width: 8px; height: 8px; cursor: sw-resize; }
+.resizeN  { position: absolute; top: -3px; left: 6px; right: 6px; height: 6px; cursor: n-resize; z-index: 10; }
+.resizeS  { position: absolute; bottom: -3px; left: 6px; right: 6px; height: 6px; cursor: s-resize; z-index: 10; }
+.resizeE  { position: absolute; right: -3px; top: 6px; bottom: 6px; width: 6px; cursor: e-resize; z-index: 10; }
+.resizeW  { position: absolute; left: -3px; top: 6px; bottom: 6px; width: 6px; cursor: w-resize; z-index: 10; }
+.resizeNE { position: absolute; top: -3px; right: -3px; width: 8px; height: 8px; cursor: ne-resize; z-index: 11; }
+.resizeNW { position: absolute; top: -3px; left: -3px; width: 8px; height: 8px; cursor: nw-resize; z-index: 11; }
+.resizeSE { position: absolute; bottom: -3px; right: -3px; width: 8px; height: 8px; cursor: se-resize; z-index: 11; }
+.resizeSW { position: absolute; bottom: -3px; left: -3px; width: 8px; height: 8px; cursor: sw-resize; z-index: 11; }

@@ -47,3 +47,50 @@
   border: var(--win95-border-sunken);
   border-color: var(--win95-border-sunken-color);
 }
+
+.bios {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  color: #aaa;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.biosText {
+  line-height: 1.4;
+}
+
+.win95loading {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.win95logo {
+  width: 200px;
+  image-rendering: pixelated;
+}
+
+.progressTrack {
+  width: 200px;
+  height: 14px;
+  background: #111;
+  border: 1px solid #444;
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  background: linear-gradient(90deg, #003399 0%, #0055cc 100%);
+  transition: width 0.08s linear;
+}

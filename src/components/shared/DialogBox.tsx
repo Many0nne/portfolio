@@ -1,37 +1,62 @@
+import { useEffect, useRef } from 'react'
 import styles from './DialogBox.module.css'
-import { AppIcon } from './AppIcon'
+
+export interface DialogButton {
+  label: string
+  onClick: () => void
+  primary?: boolean
+}
 
 interface DialogBoxProps {
   title: string
   message: string
-  icon?: 'info' | 'error' | 'question'
-  onOk: () => void
+  variant?: 'info' | 'warning' | 'error' | 'question'
+  buttons?: DialogButton[]
+  onOk?: () => void
   onCancel?: () => void
 }
 
-export function DialogBox({ title, message, icon = 'info', onOk, onCancel }: DialogBoxProps) {
-  const iconName = icon === 'error' ? '❌' : icon === 'question' ? '❓' : 'ℹ️'
+const VARIANT_ICON: Record<string, string> = {
+  info: 'ℹ️',
+  warning: '⚠️',
+  error: '❌',
+  question: '❓',
+}
+
+export function DialogBox({ title, message, variant = 'info', buttons, onOk, onCancel }: DialogBoxProps) {
+  const primaryRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    primaryRef.current?.focus()
+  }, [])
+
+  const resolvedButtons: DialogButton[] = buttons ?? [
+    ...(onCancel ? [{ label: 'Annuler', onClick: onCancel }] : []),
+    { label: 'OK', onClick: onOk ?? (() => {}), primary: true },
+  ]
 
   return (
     <div className={styles.overlay} role="alertdialog" aria-label={title}>
       <div className={styles.dialog}>
         <div className={styles.titleBar}>
-          <AppIcon name="info" size={14} />
           <span>{title}</span>
         </div>
         <div className={styles.body}>
-          <span className={styles.icon}>{iconName}</span>
+          <span className={styles.icon}>{VARIANT_ICON[variant]}</span>
           <p>{message}</p>
         </div>
         <div className={styles.buttons}>
-          {onCancel && (
-            <button className="button" onClick={onCancel}>
-              Annuler
+          {resolvedButtons.map((btn, i) => (
+            <button
+              key={i}
+              ref={btn.primary ? primaryRef : undefined}
+              className="button"
+              onClick={btn.onClick}
+              autoFocus={btn.primary}
+            >
+              {btn.label}
             </button>
-          )}
-          <button className="button" onClick={onOk} autoFocus>
-            OK
-          </button>
+          ))}
         </div>
       </div>
     </div>

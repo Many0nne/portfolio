@@ -92,7 +92,12 @@ function getPos(canvas: HTMLCanvasElement, e: React.MouseEvent): { x: number; y:
   }
 }
 
-export function PaintApp() {
+interface PaintAppProps {
+  windowId?: string
+  fileId?: string
+}
+
+export function PaintApp(_props: PaintAppProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [tool, setTool] = useState<Tool>('pen')
   const [fgColor, setFgColor] = useState('#000000')

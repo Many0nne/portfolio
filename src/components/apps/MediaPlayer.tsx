@@ -10,7 +10,7 @@ function formatTime(s: number): string {
   return `${m}:${sec.toString().padStart(2, '0')}`
 }
 
-export function MediaPlayer() {
+export function MediaPlayer({ fileId: _fileId }: { fileId?: string } = {}) {
   const [trackIndex, setTrackIndex] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)

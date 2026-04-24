@@ -3,10 +3,12 @@ import { projects } from '../../data/projects'
 
 interface ProjectViewerProps {
   projectId?: string
+  fileId?: string
 }
 
-export function ProjectViewer({ projectId }: ProjectViewerProps) {
-  const project = projects.find((p) => p.id === projectId) ?? projects[0]
+export function ProjectViewer({ projectId, fileId }: ProjectViewerProps) {
+  const resolvedId = projectId ?? fileId ?? ''
+  const project = projects.find((p) => p.id === resolvedId) ?? projects[0]
 
   if (!project) return <div style={{ padding: 16 }}>Projet introuvable.</div>
 

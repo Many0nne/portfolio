@@ -3,7 +3,6 @@ import styles from './Desktop.module.css'
 import { useWindowStore } from '../../store/windowStore'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { useSound } from '../../hooks/useSound'
-import { useCasinoStore } from '../../store/casinoStore'
 import { useFsStore } from '../../fs/fsStore'
 import { BUREAU_ID } from '../../fs/seed'
 import { ICON_MAP } from '../../data/icons'
@@ -109,8 +108,6 @@ const DEFAULT_POSITIONS: Record<string, GridPos> = {
   'lnk-paint': { col: 2, row: 0 },
   'lnk-media-player': { col: 2, row: 1 },
   'lnk-terminal': { col: 3, row: 0 },
-  'lnk-casino': { col: 2, row: 2 },
-  'lnk-bank': { col: 2, row: 3 },
 }
 
 function computeDynamicSeedPositions(ids: string[], m: GridMetrics, existing: Record<string, GridPos> = {}): Record<string, GridPos> {
@@ -158,13 +155,13 @@ function getIconImage(node: FsNode): string | null {
       mail: ICON_MAP.mail,
       minesweeper: ICON_MAP.minesweeper,
       'project-viewer': ICON_MAP.project,
-      casino: ICON_MAP.casino,
-      bank: ICON_MAP.bank,
       about: ICON_MAP.info,
     }
     return iconMap[appId] ?? null
   }
-  return null
+  if (node.kind === 'folder') return ICON_MAP.folder
+  if (node.mimeType === 'text/plain' || node.name.endsWith('.txt')) return ICON_MAP.notepad
+  return ICON_MAP.folder
 }
 
 function getIconLabel(node: FsNode): string {
@@ -176,7 +173,6 @@ function getIconLabel(node: FsNode): string {
 export function Desktop() {
   const { openApp, openFile } = useWindowStore()
   const { play } = useSound()
-  const { unlocked } = useCasinoStore()
   const fsStore = useFsStore()
   const [desktopTheme] = useLocalStorage<DesktopThemeId>('win95-desktop-theme-v1', 'emerald')
   const [iconPositions, setIconPositions] = useLocalStorage<Record<string, GridPos>>('win95-icon-positions-v2', {})
@@ -185,11 +181,8 @@ export function Desktop() {
 
   const bureauIcons: FsNode[] = useMemo(() => {
     const children = fsStore.getChildren(BUREAU_ID)
-    return children.filter((n) => {
-      if (n.attrs?.hidden) return unlocked
-      return true
-    })
-  }, [fsStore, fsStore.nodes, unlocked])
+    return children
+  }, [fsStore, fsStore.nodes])
 
   const bureauIconsRef = useRef(bureauIcons)
   useEffect(() => { bureauIconsRef.current = bureauIcons }, [bureauIcons])
@@ -478,11 +471,7 @@ export function Desktop() {
               onDragStart={(e) => e.preventDefault()}
               title={`Double-cliquer pour ouvrir ${label}`}
             >
-              {iconImage ? (
-                <img src={iconImage} alt={label} className={styles.iconImage} draggable={false} />
-              ) : (
-                <img src={ICON_MAP.folder} alt={label} className={styles.iconImage} draggable={false} />
-              )}
+              <img src={iconImage ?? ICON_MAP.folder} alt={label} className={styles.iconImage} draggable={false} />
               <span className={styles.iconLabel}>{label}</span>
             </div>
           )

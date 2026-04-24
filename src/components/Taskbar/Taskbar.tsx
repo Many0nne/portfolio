@@ -6,7 +6,6 @@ import { useWindowStore } from '../../store/windowStore'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { AppIcon } from '../shared/AppIcon'
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
-import { useCasinoStore } from '../../store/casinoStore'
 
 interface TaskbarProps {
   onShutdown: () => void
@@ -16,7 +15,6 @@ export function Taskbar({ onShutdown }: TaskbarProps) {
   const [startOpen, setStartOpen] = useState(false)
   const [soundEnabled, setSoundEnabled] = useLocalStorage('win95-sound', true)
   const { windows, focusWindow, minimizeWindow, activeWindowId } = useWindowStore()
-  const { unlocked, credits, debt } = useCasinoStore()
 
   const toggleStart = useCallback(() => setStartOpen((v) => !v), [])
   useKeyboardShortcuts(toggleStart)
@@ -75,8 +73,6 @@ export function Taskbar({ onShutdown }: TaskbarProps) {
         <TaskbarClock
           soundEnabled={soundEnabled}
           onToggleSound={() => setSoundEnabled((v) => !v)}
-          credits={unlocked ? credits : undefined}
-          debt={unlocked ? debt : undefined}
         />
       </div>
     </>

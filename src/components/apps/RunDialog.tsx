@@ -18,8 +18,6 @@ const APP_ALIASES: Record<string, AppId> = {
   mplayer: 'media-player',
   outlook: 'mail',
   mail: 'mail',
-  casino: 'casino',
-  bank: 'bank',
 }
 
 interface RunDialogProps {

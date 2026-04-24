@@ -6,8 +6,6 @@ import { ShutdownScreen } from './components/BootScreen/ShutdownScreen'
 import { Taskbar } from './components/Taskbar/Taskbar'
 import { Window } from './components/Window/Window'
 import { useWindowStore } from './store/windowStore'
-import { useCasinoStore } from './store/casinoStore'
-import { GameOverDialog } from './components/GameOverDialog'
 import type { AppId } from './apps/types'
 
 const NotepadApp = lazy(() =>
@@ -37,12 +35,6 @@ const PaintApp = lazy(() =>
 const MediaPlayer = lazy(() =>
   import('./components/apps/MediaPlayer').then((m) => ({ default: m.MediaPlayer }))
 )
-const CasinoApp = lazy(() =>
-  import('./components/apps/CasinoApp').then((m) => ({ default: m.CasinoApp }))
-)
-const BankApp = lazy(() =>
-  import('./components/apps/BankApp').then((m) => ({ default: m.BankApp }))
-)
 const RunDialog = lazy(() =>
   import('./components/apps/RunDialog').then((m) => ({ default: m.RunDialog }))
 )
@@ -67,10 +59,6 @@ function AppContent({ app, props, windowId }: { app: AppId; props: Record<string
       return <PaintApp windowId={windowId} fileId={props.fileId as string | undefined} />
     case 'media-player':
       return <MediaPlayer fileId={props.fileId as string | undefined} />
-    case 'casino':
-      return <CasinoApp />
-    case 'bank':
-      return <BankApp />
     case 'run':
       return <RunDialog windowId={windowId} />
     default:
@@ -82,7 +70,6 @@ type AppPhase = 'boot' | 'desktop' | 'shutdown'
 
 export default function App() {
   const { windows } = useWindowStore()
-  const { isBankrupt } = useCasinoStore()
   const [phase, setPhase] = useState<AppPhase>('boot')
 
   const handleBoot = () => setPhase('desktop')
@@ -106,7 +93,6 @@ export default function App() {
         </Window>
       ))}
       <Taskbar onShutdown={handleShutdown} />
-      {isBankrupt && <GameOverDialog />}
     </>
   )
 }

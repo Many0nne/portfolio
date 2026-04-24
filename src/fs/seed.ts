@@ -13,8 +13,6 @@ export const MUSIQUE_ID = 'musique'
 export const IMAGES_ID = 'images'
 export const TERRY_FILES_ID = 'terry-files'
 export const RECYCLED_ID = 'recycled'
-export const LNK_CASINO_ID = 'lnk-casino'
-export const LNK_BANK_ID = 'lnk-bank'
 
 const NOW = Date.now()
 
@@ -175,9 +173,6 @@ EPSI - Nantes
 
 ════════════════════════════════════════════════════`
 
-const NOTES_CONTENT = `777
-95`
-
 const FILMS_CONTENT = `FILMS FAVORIS
 ────────────────────────────────────────────────────
 
@@ -304,10 +299,6 @@ export function buildSeedTree(): { rootId: string; nodes: Record<string, FsNode>
     lnk('pf-winmine-exe', 'pf-minesweeper', 'winmine.exe', 'minesweeper', undefined, { attrs: { readOnly: true } }),
     folder('pf-mail', PROGRAM_FILES_ID, 'Mail'),
     lnk('pf-mail-exe', 'pf-mail', 'mail.exe', 'mail', undefined, { attrs: { readOnly: true } }),
-    folder('pf-casino', PROGRAM_FILES_ID, 'Casino'),
-    lnk('pf-casino-exe', 'pf-casino', 'casino.exe', 'casino', undefined, { attrs: { readOnly: true } }),
-    folder('pf-bank', PROGRAM_FILES_ID, 'Bank'),
-    lnk('pf-bank-exe', 'pf-bank', 'bank.exe', 'bank', undefined, { attrs: { readOnly: true } }),
 
     // Users\
     folder(USERS_ID, ROOT_ID, 'Users'),
@@ -328,14 +319,11 @@ export function buildSeedTree(): { rootId: string; nodes: Record<string, FsNode>
     lnk('lnk-paint', BUREAU_ID, 'Paint', 'paint'),
     lnk('lnk-media-player', BUREAU_ID, 'Lecteur Multimédia', 'media-player'),
     lnk('lnk-terminal', BUREAU_ID, 'Terminal', 'terminal'),
-    lnk(LNK_CASINO_ID, BUREAU_ID, 'Casino', 'casino', undefined, { attrs: { hidden: true } }),
-    lnk(LNK_BANK_ID, BUREAU_ID, 'Banque', 'bank', undefined, { attrs: { hidden: true } }),
 
     // Users\Terry\Documents\
     folder(DOCUMENTS_ID, USERS_TERRY_ID, 'Documents'),
     file('cv-txt', DOCUMENTS_ID, 'CV.txt', RESUME_CONTENT, 'text/plain'),
     file('competences-txt', DOCUMENTS_ID, 'Compétences.txt', SKILLS_CONTENT, 'text/plain'),
-    file('notes-txt', DOCUMENTS_ID, 'Notes.txt', NOTES_CONTENT, 'text/plain'),
 
     // Users\Terry\Mes Projets\
     folder(MES_PROJETS_ID, USERS_TERRY_ID, 'Mes Projets'),
@@ -353,8 +341,8 @@ export function buildSeedTree(): { rootId: string; nodes: Record<string, FsNode>
     // Users\Terry\Images\
     folder(IMAGES_ID, USERS_TERRY_ID, 'Images'),
 
-    // Terry Files\ (locked)
-    folder(TERRY_FILES_ID, ROOT_ID, 'Terry Files', { locked: { pin: '95' } }),
+    // Terry Files\
+    folder(TERRY_FILES_ID, ROOT_ID, 'Terry Files'),
     file('terry-films', TERRY_FILES_ID, 'films-favoris.lst', FILMS_CONTENT, 'text/plain'),
 
     // Recycled\

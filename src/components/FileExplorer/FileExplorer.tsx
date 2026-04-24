@@ -12,19 +12,78 @@ import type { ContextMenuItem } from '../shared/ContextMenu'
 
 type ViewMode = 'icons' | 'list'
 
-interface PinState {
-  nodeId: string
-  value: string
-  error: boolean
-  onSuccess: () => void
-}
-
 interface ExplorerProps {
   windowId: string
   folderId?: string
 }
 
 function getFolderIcon() { return ICON_MAP.folder ?? '/img/Windows_95_FOLDER.png' }
+
+interface TreeNodeProps {
+  nodeId: string
+  depth: number
+  currentId: string
+  onNavigate: (id: string) => void
+}
+
+function TreeNode({ nodeId, depth, currentId, onNavigate }: TreeNodeProps) {
+  const fsStore = useFsStore()
+  const node = fsStore.nodes[nodeId]
+
+  if (!node || node.kind !== 'folder') return null
+
+  const children = fsStore
+    .getChildren(nodeId)
+    .filter((c) => c.kind === 'folder' && !c.attrs?.hidden && !c.attrs?.system)
+
+  const [expanded, setExpanded] = useState(true)
+
+  const hasChildren = children.length > 0
+  const isSelected = currentId === nodeId
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setExpanded((prev) => !prev)
+  }
+
+  const handleNavigate = () => {
+    onNavigate(nodeId)
+  }
+
+  return (
+    <div className={styles.treeNode}>
+      <div
+        className={`${styles.treeItem} ${isSelected ? styles.selected : ''}`}
+        style={{ paddingLeft: depth * 16 }}
+        onClick={handleNavigate}
+      >
+        <span
+          className={styles.treeToggle}
+          onClick={handleToggle}
+          style={{ visibility: hasChildren ? 'visible' : 'hidden' }}
+        >
+          {expanded ? '▼' : '▶'}
+        </span>
+        <img className={styles.treeIcon} src={getFolderIcon()} alt="" />
+        <span className={styles.treeLabel}>{node.name}</span>
+      </div>
+
+      {expanded && hasChildren && (
+        <div className={styles.treeChildren}>
+          {children.map((child) => (
+            <TreeNode
+              key={child.id}
+              nodeId={child.id}
+              depth={depth + 1}
+              currentId={currentId}
+              onNavigate={onNavigate}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function getFileIcon(node: FsNode): string {
   if (node.kind === 'folder') return getFolderIcon()
@@ -58,7 +117,6 @@ export function FileExplorer({ windowId, folderId }: ExplorerProps) {
   const [historyStack, setHistoryStack] = useState<string[]>([folderId ?? rootId])
   const [historyIndex, setHistoryIndex] = useState(0)
   const [viewMode, setViewMode] = useState<ViewMode>('icons')
-  const [pinState, setPinState] = useState<PinState | null>(null)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId?: string } | null>(null)
   const [renaming, setRenaming] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
@@ -66,7 +124,6 @@ export function FileExplorer({ windowId, folderId }: ExplorerProps) {
   const [addressInput, setAddressInput] = useState('')
   const [editingAddress, setEditingAddress] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
-  const pinInputRef = useRef<HTMLInputElement>(null)
   const renameRef = useRef<HTMLInputElement>(null)
 
   const currentId = historyStack[historyIndex]
@@ -76,13 +133,7 @@ export function FileExplorer({ windowId, folderId }: ExplorerProps) {
   const allChildren = fsStore.getChildren(currentId)
   const visibleChildren = allChildren.filter((n) => !n.attrs?.hidden)
 
-  const canGoBack = historyIndex > 0
-  const canGoForward = historyIndex < historyStack.length - 1
   const canGoUp = currentNode?.parentId !== null
-
-  useEffect(() => {
-    if (pinState) pinInputRef.current?.focus()
-  }, [pinState])
 
   useEffect(() => {
     if (renaming) renameRef.current?.select()
@@ -96,13 +147,9 @@ export function FileExplorer({ windowId, folderId }: ExplorerProps) {
     setTitle(windowId, `${currentNode?.name ?? 'Explorateur'} — Explorateur`)
   }, [currentId, currentNode?.name, setTitle, windowId])
 
-  const navigate = useCallback((id: string, force = false) => {
+  const navigate = useCallback((id: string) => {
     const node = fsStore.nodes[id]
     if (!node) return
-    if (node.locked && !force) {
-      setPinState({ nodeId: id, value: '', error: false, onSuccess: () => navigate(id, true) })
-      return
-    }
     setHistoryStack((prev) => {
       const newStack = [...prev.slice(0, historyIndex + 1), id]
       return newStack
@@ -115,16 +162,10 @@ export function FileExplorer({ windowId, folderId }: ExplorerProps) {
     setSelectedIds(new Set())
   }, [historyIndex, fsStore.nodes])
 
-  const goBack = () => { if (canGoBack) { setHistoryIndex((i) => i - 1); setSelectedIds(new Set()) } }
-  const goForward = () => { if (canGoForward) { setHistoryIndex((i) => i + 1); setSelectedIds(new Set()) } }
   const goUp = () => { if (canGoUp && currentNode?.parentId) navigate(currentNode.parentId) }
 
   const handleOpen = useCallback((node: FsNode) => {
     if (node.kind === 'folder') { navigate(node.id); return }
-    if (node.locked) {
-      setPinState({ nodeId: node.id, value: '', error: false, onSuccess: () => handleOpenForced(node) })
-      return
-    }
     handleOpenForced(node)
   }, [navigate])
 
@@ -133,25 +174,12 @@ export function FileExplorer({ windowId, folderId }: ExplorerProps) {
     openFile(node.id)
   }
 
-  const handlePinSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault()
-    if (!pinState) return
-    const node = fsStore.nodes[pinState.nodeId]
-    if (node?.locked && pinState.value === node.locked.pin) {
-      pinState.onSuccess()
-      setPinState(null)
-    } else {
-      setPinState((p) => p ? { ...p, value: '', error: true } : null)
-      setTimeout(() => setPinState((p) => p ? { ...p, error: false } : null), 2000)
-    }
-  }, [pinState, fsStore.nodes])
-
   const handleAddressSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setEditingAddress(false)
     const result = fsStore.resolvePath(addressInput, currentId)
     if (result.ok && result.node.kind === 'folder') {
-      navigate(result.node.id, true)
+      navigate(result.node.id)
     } else if (result.ok) {
       openFile(result.node.id)
     }
@@ -224,46 +252,8 @@ export function FileExplorer({ windowId, folderId }: ExplorerProps) {
     },
   ]
 
-  // Build left tree
-  const rootFolders = fsStore.getChildren(rootId).filter((n) => n.kind === 'folder' && !n.attrs?.system && !n.attrs?.hidden)
-
   return (
     <div className={styles.container}>
-      {pinState && (
-        <div className={styles.pinOverlay}>
-          <div className={styles.pinBox}>
-            <div className={styles.pinBoxTitle}>
-              <img src={getFolderIcon()} alt="" className={styles.pinBoxTitleIcon} />
-              Dossier protégé
-            </div>
-            <div className={styles.pinBoxBody}>
-              <img src={getFolderIcon()} alt="" className={styles.pinBoxFolderIcon} />
-              <div>
-                <p className={styles.pinBoxMessage}>Ce dossier est protégé par un code d'accès.</p>
-                <form onSubmit={handlePinSubmit} className={styles.pinBoxForm}>
-                  <label className={styles.pinBoxLabel}>Code d'accès :</label>
-                  <input
-                    ref={pinInputRef}
-                    type="password"
-                    inputMode="numeric"
-                    maxLength={4}
-                    value={pinState.value}
-                    onChange={(e) => setPinState((p) => p ? { ...p, value: e.target.value } : null)}
-                    className={`${styles.pinBoxInput} ${pinState.error ? styles.pinBoxInputError : ''}`}
-                    autoComplete="off"
-                  />
-                  <span className={styles.pinBoxError}>{pinState.error ? 'Code incorrect.' : ''}</span>
-                  <div className={styles.pinBoxButtons}>
-                    <button type="button" className="button" onClick={() => setPinState(null)}>Annuler</button>
-                    <button type="submit" className="button">OK</button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {deleteConfirm && (
         <DialogBox
           title="Confirmer la suppression"
@@ -279,12 +269,6 @@ export function FileExplorer({ windowId, folderId }: ExplorerProps) {
       <MenuBar menus={menus} />
 
       <div className={styles.toolbar}>
-        <button className={styles.toolBtn} onClick={goBack} disabled={!canGoBack} title="Précédent">
-          <img className={styles.toolBtnIcon} src={ICON_MAP.folder} alt="" />◄
-        </button>
-        <button className={styles.toolBtn} onClick={goForward} disabled={!canGoForward} title="Suivant">
-          ►
-        </button>
         <button className={styles.toolBtn} onClick={goUp} disabled={!canGoUp} title="Dossier parent">
           <img className={styles.toolBtnIcon} src={ICON_MAP.folder} alt="" />
           Dossier parent
@@ -312,25 +296,12 @@ export function FileExplorer({ windowId, folderId }: ExplorerProps) {
 
       <div className={styles.body}>
         <div className={styles.tree}>
-          <div
-            className={`${styles.treeItem} ${currentId === rootId ? styles.selected : ''}`}
-            onClick={() => navigate(rootId, true)}
-          >
-            <img className={styles.treeIcon} src={ICON_MAP.computer ?? ICON_MAP.folder} alt="" />
-            Poste de travail
-          </div>
-          {rootFolders.map((f) => (
-            <div key={f.id}>
-              <div
-                className={`${styles.treeItem} ${currentId === f.id ? styles.selected : ''}`}
-                style={{ paddingLeft: 16 }}
-                onClick={() => navigate(f.id, !f.locked)}
-              >
-                <img className={styles.treeIcon} src={getFolderIcon()} alt="" />
-                {f.name}
-              </div>
-            </div>
-          ))}
+          <TreeNode
+            nodeId={rootId}
+            depth={0}
+            currentId={currentId}
+            onNavigate={navigate}
+          />
         </div>
 
         <div

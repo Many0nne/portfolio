@@ -12,7 +12,6 @@ export interface FsNode {
   createdAt: number
   modifiedAt: number
   sizeBytes: number
-  locked?: { pin: string }
   shortcut?: { app: AppId; props?: Record<string, unknown> }
   attrs?: { hidden?: boolean; readOnly?: boolean; system?: boolean }
 }

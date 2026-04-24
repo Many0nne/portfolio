@@ -7,7 +7,5 @@ export type AppId =
   | 'mail'
   | 'minesweeper'
   | 'project-viewer'
-  | 'casino'
-  | 'bank'
   | 'about'
   | 'run'

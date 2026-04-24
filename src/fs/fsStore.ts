@@ -5,7 +5,7 @@ import { buildSeedTree, RECYCLED_ID } from './seed'
 
 type ResolveResult =
   | { ok: true; node: FsNode }
-  | { ok: false; reason: 'not-found' | 'not-dir' | 'locked' }
+  | { ok: false; reason: 'not-found' | 'not-dir' }
 
 interface FsStore {
   nodes: Record<string, FsNode>
@@ -88,7 +88,6 @@ export const useFsStore = create<FsStore>()(
           const children = get().getChildren(currentId)
           const child = children.find((n) => n.name.toLowerCase() === seg.toLowerCase())
           if (!child) return { ok: false, reason: 'not-found' }
-          if (child.locked) return { ok: false, reason: 'locked' }
           currentId = child.id
         }
 

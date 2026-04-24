@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import styles from './TerminalApp.module.css'
 import { useFsStore } from '../../fs/fsStore'
 import { useWindowStore } from '../../store/windowStore'
-import { useCasinoStore } from '../../store/casinoStore'
 import { resolveAssociation } from '../../fs/associations'
 import type { FsNode } from '../../fs/types'
 
@@ -30,7 +29,7 @@ function buildTree(nodeId: string, prefix: string, isLast: boolean, fsStore: FsS
   if (!node) return []
   const connector = isLast ? '└── ' : '├── '
   const lines: string[] = [`${prefix}${connector}${node.name}`]
-  if (node.kind === 'folder' && !node.locked) {
+  if (node.kind === 'folder') {
     const children = fsStore.getChildren(nodeId).filter((c) => !c.attrs?.hidden && !c.attrs?.system)
     const extension = isLast ? '    ' : '│   '
     children.forEach((child, i) => {
@@ -47,8 +46,6 @@ interface TerminalProps {
 export function TerminalApp({ windowId }: TerminalProps) {
   const fsStore = useFsStore() as FsStoreState
   const { openApp, closeWindow } = useWindowStore()
-  const casinoStore = useCasinoStore()
-
   const rootId = fsStore.rootId
   const [cwdId, setCwdId] = useState(rootId)
   const [lines, setLines] = useState<Line[]>(WELCOME)
@@ -89,20 +86,6 @@ export function TerminalApp({ windowId }: TerminalProps) {
 
   const out = (text: string) => ({ text, type: 'output' as const })
   const err = (text: string) => ({ text, type: 'error' as const })
-
-  const handlePin = useCallback((pin: string) => {
-    if (!awaitingPin) return
-    const inputLine: Line = { text: `PIN: ${'*'.repeat(pin.length)}`, type: 'input' }
-    const node = fsStore.nodes[awaitingPin.nodeId]
-    if (node?.locked && pin === node.locked.pin) {
-      setCwdId(awaitingPin.nodeId)
-      setAwaitingPin(null)
-      push(inputLine, out('Accès autorisé.'), out(''))
-    } else {
-      setAwaitingPin(null)
-      push(inputLine, err('PIN incorrect. Accès refusé.'), out(''))
-    }
-  }, [awaitingPin, fsStore.nodes, push])
 
   const resolvePathArg = useCallback((arg: string): { ok: true; node: FsNode } | { ok: false; msg: string } => {
     const result = fsStore.resolvePath(arg, cwdId)
@@ -168,8 +151,6 @@ export function TerminalApp({ windowId }: TerminalProps) {
     if (!raw) return
     setInput('')
 
-    if (awaitingPin) { handlePin(raw); return }
-
     const newHistory = [raw, ...history].slice(0, 50)
     setHistory(newHistory)
     setHistoryIndex(-1)
@@ -179,19 +160,6 @@ export function TerminalApp({ windowId }: TerminalProps) {
     const spaceIdx = lower.indexOf(' ')
     const command = spaceIdx >= 0 ? lower.slice(0, spaceIdx) : lower
     const arg = spaceIdx >= 0 ? raw.slice(spaceIdx + 1).trim() : ''
-
-    // Easter egg
-    if (raw === '777') {
-      casinoStore.unlockCasino()
-      push(
-        inputLine,
-        out(''),
-        out('  *** CASINO DÉVERROUILLÉ ***'),
-        out('  Le Casino et la Banque sont maintenant accessibles.'),
-        out('')
-      )
-      return
-    }
 
     if (command === 'cls' || command === 'clear') { setLines([]); return }
 
@@ -342,11 +310,6 @@ export function TerminalApp({ windowId }: TerminalProps) {
       if (!arg) { push(inputLine, err('Usage : start <fichier>'), out('')); return }
       const r = resolvePathArg(arg)
       if (!r.ok) { push(inputLine, err(`Fichier introuvable : '${arg}'`), out('')); return }
-      if (r.node.kind === 'folder' && r.node.locked) {
-        setAwaitingPin({ nodeId: r.node.id })
-        push(inputLine, out('Dossier protégé. Entrez le PIN :'))
-        return
-      }
       const assoc = resolveAssociation(r.node)
       if (!assoc) { push(inputLine, err('Aucune application associée.'), out('')); return }
       openApp(assoc.app, { fileId: r.node.kind === 'file' ? r.node.id : undefined, props: assoc.props ?? {} })
@@ -418,7 +381,7 @@ export function TerminalApp({ windowId }: TerminalProps) {
       err('ou externe, un programme exécutable ou un fichier de commandes.'),
       out('')
     )
-  }, [input, history, awaitingPin, handlePin, handleEcho, getPromptPath, cwdId, fsStore, openApp, closeWindow, windowId, casinoStore, resolvePathArg, push])
+  }, [input, history, awaitingPin, handleEcho, getPromptPath, cwdId, fsStore, openApp, closeWindow, windowId, resolvePathArg, push])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Tab') {
@@ -513,7 +476,6 @@ function findLockedNode(path: string, cwdId: string, fsStore: FsStoreState): FsN
     const children = fsStore.getChildren(currentId)
     const child = children.find((n) => n.name.toLowerCase() === seg.toLowerCase())
     if (!child) return null
-    if (child.locked) return child
     currentId = child.id
   }
   return null

@@ -79,6 +79,32 @@
   padding: 4px;
 }
 
+.treeNode {
+  display: flex;
+  flex-direction: column;
+}
+
+.treeChildren {
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
+}
+
+.treeToggle {
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+  font-size: 10px;
+  cursor: pointer;
+  user-select: none;
+  color: #888;
+  flex-shrink: 0;
+}
+
+.treeToggle:hover {
+  color: #000;
+}
+
 .treeItem {
   display: flex;
   align-items: center;
@@ -87,16 +113,20 @@
   cursor: pointer;
   font-size: 11px;
   border: 1px solid transparent;
+  user-select: none;
+  white-space: nowrap;
 }
 
 .treeItem:hover {
   background: var(--win95-blue);
   color: var(--win95-text-inv);
+  width: fit-content;
 }
 
 .treeItem.selected {
   background: var(--win95-blue);
   color: var(--win95-text-inv);
+  width: fit-content;
 }
 
 .treeIcon {
@@ -104,6 +134,11 @@
   height: 14px;
   object-fit: contain;
   image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
+.treeLabel {
+  flex: 1;
 }
 
 .fileGrid {

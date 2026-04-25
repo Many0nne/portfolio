@@ -1,44 +1,59 @@
 .screen {
   position: fixed;
   inset: 0;
-  background: #a4462e;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.18), transparent 40%),
+    linear-gradient(180deg, #0a1d45 0%, #08122a 55%, #02040b 100%);
 }
 
 .box {
-  background: #000;
-  color: #a4462e;
-  padding: 40px 48px;
+  display: grid;
+  justify-items: center;
+  gap: 22px;
+  padding: 28px 36px;
+  border-top: 1px solid rgba(255, 255, 255, 0.45);
+  border-left: 1px solid rgba(255, 255, 255, 0.45);
+  border-right: 1px solid rgba(0, 0, 0, 0.7);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.7);
+  background: rgba(192, 192, 192, 0.88);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.35);
+  min-width: 280px;
+  max-width: 400px;
   text-align: center;
-  max-width: 500px;
 }
 
 .title {
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 16px;
-  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  color: #000;
+  letter-spacing: 0.04em;
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 .message {
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.6;
-  margin-bottom: 24px;
-  color: #ccc;
+  color: #222;
+  margin: 0;
 }
 
 .restartBtn {
-  background: #333;
-  color: #fff;
-  border: 1px solid #666;
-  padding: 8px 24px;
-  font-size: 12px;
+  min-width: 120px;
+  padding: 10px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--win95-text);
+  background: var(--win95-surface);
+  border: var(--win95-border-raised);
+  border-color: var(--win95-border-raised-color);
   cursor: pointer;
   font-family: inherit;
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.15);
 }
 
-.restartBtn:hover {
-  background: #555;
+.restartBtn:active {
+  border: var(--win95-border-sunken);
+  border-color: var(--win95-border-sunken-color);
 }

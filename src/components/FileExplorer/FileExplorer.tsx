@@ -7,8 +7,7 @@ import { ICON_MAP } from '../../data/icons'
 import { ContextMenu } from '../shared/ContextMenu'
 import { DialogBox } from '../shared/DialogBox'
 import { MenuBar } from '../shared/MenuBar'
-import type { FsNode } from '../../fs/types'
-import type { ContextMenuItem } from '../shared/ContextMenu'
+import type { FsNode, ContextMenuItem } from '../../types'
 
 type ViewMode = 'icons' | 'list'
 

@@ -1,10 +1,4 @@
-export interface Track {
-  id: string
-  title: string
-  artist: string
-  src: string
-  duration: number
-}
+import type { Track } from '../types'
 
 export const playlist: Track[] = [
   {

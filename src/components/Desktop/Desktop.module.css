@@ -186,3 +186,11 @@
   background: var(--win95-dark);
   margin: 3px 4px;
 }
+
+.selectionRect {
+  position: absolute;
+  border: 1px dotted var(--win95-light);
+  background: rgba(0, 0, 128, 0.15);
+  pointer-events: none;
+  z-index: 50;
+}

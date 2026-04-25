@@ -1,4 +1,4 @@
-import type { FsNode } from './types'
+import type { FsNode } from '../types'
 
 export const ROOT_ID = 'root'
 export const WINDOWS_ID = 'windows'
@@ -311,7 +311,6 @@ export function buildSeedTree(): { rootId: string; nodes: Record<string, FsNode>
     lnk('lnk-mes-projets', BUREAU_ID, 'Mes Projets', 'explorer', { folderId: MES_PROJETS_ID }),
     lnk('lnk-cv', BUREAU_ID, 'CV.txt', 'notepad', { fileId: 'cv-txt' }),
     lnk('lnk-competences', BUREAU_ID, 'Compétences.txt', 'notepad', { fileId: 'competences-txt' }),
-    lnk('lnk-notes', BUREAU_ID, 'Notes.txt', 'notepad', { fileId: 'notes-txt' }),
     lnk('lnk-about', BUREAU_ID, 'À propos', 'about'),
     lnk('lnk-minesweeper', BUREAU_ID, 'Démineur', 'minesweeper'),
     lnk('lnk-terry-files', BUREAU_ID, 'Terry Files', 'explorer', { folderId: TERRY_FILES_ID }),

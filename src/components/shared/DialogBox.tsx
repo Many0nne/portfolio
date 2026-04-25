@@ -1,11 +1,6 @@
 import { useEffect, useRef } from 'react'
 import styles from './DialogBox.module.css'
-
-export interface DialogButton {
-  label: string
-  onClick: () => void
-  primary?: boolean
-}
+import type { DialogButton } from '../../types'
 
 interface DialogBoxProps {
   title: string

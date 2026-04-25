@@ -2,7 +2,7 @@ import { useRef, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import styles from './Window.module.css'
 import { useWindowStore } from '../../store/windowStore'
-import type { WindowState } from '../../store/windowStore'
+import type { WindowState, ResizeHandle } from '../../types'
 import { useSound } from '../../hooks/useSound'
 import { AppIcon } from '../shared/AppIcon'
 
@@ -19,8 +19,6 @@ interface WindowProps {
   maximizable?: boolean
   children: ReactNode
 }
-
-type ResizeHandle = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
 
 const MIN_WIDTH = 200
 const MIN_HEIGHT = 120

@@ -1,26 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import styles from './MenuBar.module.css'
-
-export type MenuItem =
-  | {
-      separator: true
-      label?: string
-      onClick?: () => void
-      disabled?: boolean
-      checked?: boolean
-    }
-  | {
-      label: string
-      onClick?: () => void
-      separator?: false
-      disabled?: boolean
-      checked?: boolean
-    }
-
-export interface Menu {
-  label: string
-  items: MenuItem[]
-}
+import type { Menu } from '../../types'
 
 interface MenuBarProps {
   menus: Menu[]

@@ -6,7 +6,7 @@ import { useWindowStore } from '../../store/windowStore'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { AppIcon } from '../shared/AppIcon'
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
-import type { WindowState } from '../../store/windowStore'
+import type { WindowState } from '../../types'
 
 export function Taskbar() {
   const [startOpen, setStartOpen] = useState(false)

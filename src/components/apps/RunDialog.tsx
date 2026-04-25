@@ -3,7 +3,7 @@ import styles from './RunDialog.module.css'
 import { useWindowStore } from '../../store/windowStore'
 import { useFsStore } from '../../fs/fsStore'
 import { resolveAssociation } from '../../fs/associations'
-import type { AppId } from '../../apps/types'
+import type { AppId } from '../../types'
 
 const APP_ALIASES: Record<string, AppId> = {
   notepad: 'notepad',

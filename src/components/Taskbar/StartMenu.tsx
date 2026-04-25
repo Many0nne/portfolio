@@ -5,7 +5,7 @@ import { AppIcon } from '../shared/AppIcon'
 import { projects } from '../../data/projects'
 import { useFsStore } from '../../fs/fsStore'
 import { DOCUMENTS_ID } from '../../fs/seed'
-import type { AppId } from '../../apps/types'
+import type { AppId } from '../../types'
 
 interface StartMenuProps {
   onClose: () => void

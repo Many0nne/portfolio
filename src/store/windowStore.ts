@@ -1,27 +1,8 @@
 import { create } from 'zustand'
-import type { AppId } from '../apps/types'
+import type { AppId, WindowInstance, WindowState, SystemState } from '../types'
 import { APPS } from '../apps/registry'
 import { useFsStore } from '../fs/fsStore'
 import { resolveAssociation } from '../fs/associations'
-
-export type WindowState = 'normal' | 'minimized' | 'maximized'
-export type SystemState = 'booting' | 'desktop' | 'shuttingDown'
-
-export interface WindowInstance {
-  id: string
-  appId: AppId
-  title: string
-  iconKey: string
-  props: Record<string, unknown>
-  state: WindowState
-  zIndex: number
-  position: { x: number; y: number }
-  size: { width: number; height: number }
-  resizable: boolean
-  minimizable: boolean
-  maximizable: boolean
-  prevBounds?: { position: { x: number; y: number }; size: { width: number; height: number } }
-}
 
 interface Store {
   windows: WindowInstance[]

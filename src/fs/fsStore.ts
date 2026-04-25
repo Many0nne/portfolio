@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { FsNode } from './types'
+import type { FsNode } from '../types'
 import { buildSeedTree, RECYCLED_ID } from './seed'
 
 type ResolveResult =

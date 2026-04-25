@@ -1,19 +1,6 @@
 import { useEffect, useRef } from 'react'
 import styles from './ContextMenu.module.css'
-
-export type ContextMenuItem =
-  | {
-      separator: true
-      label?: string
-      onClick?: () => void
-      disabled?: boolean
-    }
-  | {
-      label: string
-      onClick?: () => void
-      separator?: false
-      disabled?: boolean
-    }
+import type { ContextMenuItem } from '../../types'
 
 interface ContextMenuProps {
   x: number

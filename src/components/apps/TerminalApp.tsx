@@ -3,7 +3,7 @@ import styles from './TerminalApp.module.css'
 import { useFsStore } from '../../fs/fsStore'
 import { useWindowStore } from '../../store/windowStore'
 import { resolveAssociation } from '../../fs/associations'
-import type { FsNode } from '../../fs/types'
+import type { FsNode } from '../../types'
 
 interface Line {
   text: string

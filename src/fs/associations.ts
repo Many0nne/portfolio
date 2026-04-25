@@ -1,11 +1,5 @@
-import type { AppId } from '../apps/types'
-import type { FsNode } from './types'
+import type { AppId, FsNode, Association } from '../types'
 import { extname } from '../utils/path'
-
-export interface Association {
-  app: AppId
-  props?: Record<string, unknown>
-}
 
 const EXT_MAP: Record<string, AppId> = {
   '.txt': 'notepad',

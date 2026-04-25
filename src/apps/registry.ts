@@ -1,5 +1,5 @@
 import { lazy } from 'react'
-import type { AppId, AppDefinition } from './types'
+import type { AppId, AppDefinition } from '../types'
 
 const NotepadApp = lazy(() => import('../components/apps/NotepadApp').then((m) => ({ default: m.NotepadApp })))
 const ProjectViewer = lazy(() => import('../components/apps/ProjectViewer').then((m) => ({ default: m.ProjectViewer })))

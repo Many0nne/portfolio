@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import styles from './MailApp.module.css'
 import { mails } from '../../data/mails'
-import type { Mail } from '../../data/mails'
+import type { Mail } from '../../types'
 
 type Folder = Mail['folder']
 

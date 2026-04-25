@@ -1,15 +1,4 @@
-export interface Mail {
-  id: string
-  from: string
-  subject: string
-  date: string
-  read: boolean
-  folder: 'inbox' | 'sent' | 'deleted'
-  body: string
-  to?: string
-  previewImage?: string
-  previewImageAlt?: string
-}
+import type { Mail } from '../types'
 
 export const mails: Mail[] = [
   {

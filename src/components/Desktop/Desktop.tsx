@@ -7,12 +7,7 @@ import { useFsStore } from '../../fs/fsStore'
 import { BUREAU_ID } from '../../fs/seed'
 import { ICON_MAP } from '../../data/icons'
 import { ContextMenu } from '../shared/ContextMenu'
-import type { FsNode } from '../../fs/types'
-import type { ContextMenuItem } from '../shared/ContextMenu'
-
-const TASKBAR_H = 40
-const MIN_CELL_W = 80
-const MIN_CELL_H = 90
+import type { FsNode, ContextMenuItem } from '../../types'
 
 interface GridMetrics {
   numCols: number
@@ -25,6 +20,26 @@ interface GridPos {
   col: number
   row: number
 }
+
+interface DesktopTheme {
+  id: DesktopThemeId
+  label: string
+  backgroundColor: string
+  backgroundImage: string
+}
+
+type DesktopThemeId = 'emerald' | 'azure' | 'sunset' | 'graphite'
+
+const TASKBAR_H = 40
+const MIN_CELL_W = 80
+const MIN_CELL_H = 90
+
+const DESKTOP_THEMES: DesktopTheme[] = [
+  { id: 'emerald', label: 'Classique', backgroundColor: '#008080', backgroundImage: 'linear-gradient(160deg, rgba(0,128,128,.95) 0%, rgba(0,102,102,.95) 100%)' },
+  { id: 'azure', label: 'Azure', backgroundColor: '#0b4f8a', backgroundImage: 'linear-gradient(165deg, rgba(11,79,138,.95) 0%, rgba(45,126,196,.95) 100%)' },
+  { id: 'sunset', label: 'Sunset', backgroundColor: '#8a3f2f', backgroundImage: 'linear-gradient(170deg, rgba(163,66,43,.95) 0%, rgba(224,123,57,.95) 100%)' },
+  { id: 'graphite', label: 'Graphite', backgroundColor: '#3c4751', backgroundImage: 'linear-gradient(170deg, rgba(60,71,81,.95) 0%, rgba(91,106,119,.95) 100%)' },
+]
 
 function computeMetrics(): GridMetrics {
   const numCols = Math.max(1, Math.floor(window.innerWidth / MIN_CELL_W))
@@ -72,42 +87,18 @@ function getGridCapacity(m: GridMetrics): number {
   return m.numCols * m.numRows
 }
 
+function computeDefaultPosition(index: number, m: GridMetrics): GridPos {
+  return {
+    col: Math.floor(index / m.numRows),
+    row: index % m.numRows,
+  }
+}
+
 function assertGridCapacity(requiredCount: number, m: GridMetrics) {
   const capacity = getGridCapacity(m)
   if (requiredCount > capacity) {
     throw new Error(`L'ecran n'est pas assez grand pour afficher toutes les applications existantes (${requiredCount}/${capacity}).`)
   }
-}
-
-type DesktopThemeId = 'emerald' | 'azure' | 'sunset' | 'graphite'
-
-interface DesktopTheme {
-  id: DesktopThemeId
-  label: string
-  backgroundColor: string
-  backgroundImage: string
-}
-
-const DESKTOP_THEMES: DesktopTheme[] = [
-  { id: 'emerald', label: 'Classique', backgroundColor: '#008080', backgroundImage: 'linear-gradient(160deg, rgba(0,128,128,.95) 0%, rgba(0,102,102,.95) 100%)' },
-  { id: 'azure', label: 'Azure', backgroundColor: '#0b4f8a', backgroundImage: 'linear-gradient(165deg, rgba(11,79,138,.95) 0%, rgba(45,126,196,.95) 100%)' },
-  { id: 'sunset', label: 'Sunset', backgroundColor: '#8a3f2f', backgroundImage: 'linear-gradient(170deg, rgba(163,66,43,.95) 0%, rgba(224,123,57,.95) 100%)' },
-  { id: 'graphite', label: 'Graphite', backgroundColor: '#3c4751', backgroundImage: 'linear-gradient(170deg, rgba(60,71,81,.95) 0%, rgba(91,106,119,.95) 100%)' },
-]
-
-// Default grid positions for the seeded shortcuts (col, row)
-const DEFAULT_POSITIONS: Record<string, GridPos> = {
-  'lnk-mes-projets': { col: 0, row: 0 },
-  'lnk-competences': { col: 0, row: 1 },
-  'lnk-cv': { col: 0, row: 2 },
-  'lnk-notes': { col: 0, row: 3 },
-  'lnk-about': { col: 0, row: 4 },
-  'lnk-minesweeper': { col: 1, row: 0 },
-  'lnk-terry-files': { col: 1, row: 1 },
-  'lnk-mail': { col: 1, row: 2 },
-  'lnk-paint': { col: 2, row: 0 },
-  'lnk-media-player': { col: 2, row: 1 },
-  'lnk-terminal': { col: 3, row: 0 },
 }
 
 function computeDynamicSeedPositions(ids: string[], m: GridMetrics, existing: Record<string, GridPos> = {}): Record<string, GridPos> {
@@ -117,7 +108,6 @@ function computeDynamicSeedPositions(ids: string[], m: GridMetrics, existing: Re
   const occupied = new Set<string>()
   const key = (c: number, r: number) => `${c},${r}`
 
-  // Mark already existing positions as occupied
   Object.entries(existing).forEach(([k, p]) => {
     const clamped = clampToGrid(p, m)
     occupied.add(key(clamped.col, clamped.row))
@@ -126,13 +116,9 @@ function computeDynamicSeedPositions(ids: string[], m: GridMetrics, existing: Re
 
   let scanIndex = 0
   for (const id of ids) {
-    if (res[id]) continue // already set from existing
+    if (res[id]) { scanIndex++; continue }
 
-    // preferred target: DEFAULT_POSITIONS (clamped) or a scanning position
-    const preferred = DEFAULT_POSITIONS[id]
-      ? clampToGrid(DEFAULT_POSITIONS[id], m)
-      : { col: scanIndex % m.numCols, row: Math.floor(scanIndex / m.numCols) }
-
+    const preferred = clampToGrid(computeDefaultPosition(scanIndex, m), m)
     const free = findFreeCell(preferred, occupied, m)
     res[id] = free
     occupied.add(key(free.col, free.row))
@@ -141,6 +127,14 @@ function computeDynamicSeedPositions(ids: string[], m: GridMetrics, existing: Re
   }
 
   return res
+}
+
+function normalizeRect(x1: number, y1: number, x2: number, y2: number) {
+  return { x: Math.min(x1, x2), y: Math.min(y1, y2), w: Math.abs(x2 - x1), h: Math.abs(y2 - y1) }
+}
+
+function rectsIntersect(ax: number, ay: number, aw: number, ah: number, bx: number, by: number, bw: number, bh: number): boolean {
+  return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by
 }
 
 function getIconImage(node: FsNode): string | null {
@@ -180,19 +174,27 @@ export function Desktop() {
   const metricsRef = useRef(metrics)
 
   const bureauIcons: FsNode[] = useMemo(() => {
-    const children = fsStore.getChildren(BUREAU_ID)
-    return children
+    return fsStore.getChildren(BUREAU_ID)
   }, [fsStore, fsStore.nodes])
 
   const bureauIconsRef = useRef(bureauIcons)
   useEffect(() => { bureauIconsRef.current = bureauIcons }, [bureauIcons])
 
-  const [selectedIcon, setSelectedIcon] = useState<string | null>(null)
+  const iconPositionsRef = useRef(iconPositions)
+  useEffect(() => { iconPositionsRef.current = iconPositions }, [iconPositions])
+
+  const [selectedIcons, setSelectedIcons] = useState<Set<string>>(new Set())
+  const selectedIconsRef = useRef(selectedIcons)
+  useEffect(() => { selectedIconsRef.current = selectedIcons }, [selectedIcons])
+
+  const [selectionRect, setSelectionRect] = useState<{ startX: number; startY: number; currentX: number; currentY: number } | null>(null)
+  const [draggingGroupPixels, setDraggingGroupPixels] = useState<Record<string, { x: number; y: number }> | null>(null)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId?: string } | null>(null)
   const [gridError, setGridError] = useState<string | null>(null)
   const [draggingPixel, setDraggingPixel] = useState<{ id: string; x: number; y: number } | null>(null)
   const lastClick = useRef<{ id: string; time: number } | null>(null)
   const dragStart = useRef<{ mx: number; my: number; ix: number; iy: number; iconId: string; pointerId: number } | null>(null)
+  const groupDragStart = useRef<{ mx: number; my: number; pixels: Record<string, { x: number; y: number }>; pointerId: number } | null>(null)
   const lastPointer = useRef<{ x: number; y: number } | null>(null)
 
   useEffect(() => { metricsRef.current = metrics }, [metrics])
@@ -218,6 +220,8 @@ export function Desktop() {
   }, [])
 
   const [seededPositions, setSeededPositions] = useState<Record<string, GridPos>>({})
+  const seededPositionsRef = useRef(seededPositions)
+  useEffect(() => { seededPositionsRef.current = seededPositions }, [seededPositions])
 
   useEffect(() => {
     const ids = bureauIcons.map((b) => b.id)
@@ -244,82 +248,213 @@ export function Desktop() {
     (e: React.PointerEvent<HTMLDivElement>, icon: FsNode) => {
       e.preventDefault()
       e.stopPropagation()
-      setSelectedIcon(icon.id)
+
+      const isCtrl = e.ctrlKey || e.metaKey
+      const currentSelected = selectedIconsRef.current
+      const isAlreadySelected = currentSelected.has(icon.id)
+
+      if (isCtrl) {
+        setSelectedIcons(prev => {
+          const next = new Set(prev)
+          if (next.has(icon.id)) next.delete(icon.id)
+          else next.add(icon.id)
+          return next
+        })
+        return
+      }
+
+      if (!isAlreadySelected) {
+        setSelectedIcons(new Set([icon.id]))
+      }
+
+      const isGroupDrag = isAlreadySelected && currentSelected.size > 1
 
       const sourceEl = e.currentTarget
       try { sourceEl.setPointerCapture(e.pointerId) } catch { /* no-op */ }
 
       const m = metricsRef.current
-      const gridPos = getGridPos(icon.id)
-      const pixel = gridToPixel(gridPos.col, gridPos.row, m)
 
-      dragStart.current = { mx: e.clientX, my: e.clientY, ix: pixel.x, iy: pixel.y, iconId: icon.id, pointerId: e.pointerId }
-      lastPointer.current = { x: e.clientX, y: e.clientY }
+      if (isGroupDrag) {
+        const pixels: Record<string, { x: number; y: number }> = {}
+        currentSelected.forEach(id => {
+          const storedPos = iconPositionsRef.current[id]
+          const gridPos = (storedPos && typeof storedPos.col === 'number')
+            ? storedPos
+            : (seededPositionsRef.current[id] ?? { col: 0, row: 0 })
+          pixels[id] = gridToPixel(gridPos.col, gridPos.row, m)
+        })
 
-      const cleanupDragListeners = () => {
-        window.removeEventListener('pointermove', onMove)
-        window.removeEventListener('pointerup', onUp)
-        window.removeEventListener('pointercancel', onCancel)
-        window.removeEventListener('blur', onWindowBlur)
-        if (sourceEl.hasPointerCapture(e.pointerId)) {
-          try { sourceEl.releasePointerCapture(e.pointerId) } catch { /* no-op */ }
+        groupDragStart.current = { mx: e.clientX, my: e.clientY, pixels, pointerId: e.pointerId }
+
+        const cleanupGroupListeners = () => {
+          window.removeEventListener('pointermove', onGroupMove)
+          window.removeEventListener('pointerup', onGroupUp)
+          window.removeEventListener('pointercancel', onGroupCancel)
+          window.removeEventListener('blur', onGroupBlur)
+          if (sourceEl.hasPointerCapture(e.pointerId)) {
+            try { sourceEl.releasePointerCapture(e.pointerId) } catch { /* no-op */ }
+          }
         }
-      }
 
-      const finalizeDrag = (clientX: number, clientY: number) => {
-        if (!dragStart.current) { cleanupDragListeners(); setDraggingPixel(null); return }
-        const dx = clientX - dragStart.current.mx
-        const dy = clientY - dragStart.current.my
-        const didDrag = Math.abs(dx) >= 4 || Math.abs(dy) >= 4
-        if (didDrag) {
-          const rawX = Math.max(0, dragStart.current.ix + dx)
-          const rawY = Math.max(0, dragStart.current.iy + dy)
-          const currentMetrics = metricsRef.current
-          const targetCell = pixelToGrid(rawX, rawY, currentMetrics)
-          setIconPositions((prev) => {
-            const occupied = new Set<string>()
-            bureauIconsRef.current.forEach((ic) => {
-              if (ic.id === icon.id) return
-              const pos = prev[ic.id] && typeof prev[ic.id].col === 'number' ? prev[ic.id] : (DEFAULT_POSITIONS[ic.id] ?? { col: 0, row: 0 })
-              occupied.add(`${pos.col},${pos.row}`)
+        const finalizeGroupDrag = (clientX: number, clientY: number) => {
+          if (!groupDragStart.current) { cleanupGroupListeners(); setDraggingGroupPixels(null); return }
+          const dx = clientX - groupDragStart.current.mx
+          const dy = clientY - groupDragStart.current.my
+          const didDrag = Math.abs(dx) >= 4 || Math.abs(dy) >= 4
+
+          if (didDrag) {
+            const currentMetrics = metricsRef.current
+            const startPixels = groupDragStart.current.pixels
+            const groupIds = Object.keys(startPixels)
+
+            setIconPositions((prev) => {
+              const occupied = new Set<string>()
+              bureauIconsRef.current.forEach((ic) => {
+                if (groupIds.includes(ic.id)) return
+                const pos = prev[ic.id] && typeof prev[ic.id].col === 'number' ? prev[ic.id] : seededPositionsRef.current[ic.id] ?? { col: 0, row: 0 }
+                occupied.add(`${pos.col},${pos.row}`)
+              })
+
+              const next = { ...prev }
+              const groupAssigned = new Set<string>()
+
+              groupIds.forEach(id => {
+                const rawX = Math.max(0, startPixels[id].x + dx)
+                const rawY = Math.max(0, startPixels[id].y + dy)
+                const target = clampToGrid(pixelToGrid(rawX, rawY, currentMetrics), currentMetrics)
+                const key = `${target.col},${target.row}`
+                if (!occupied.has(key) && !groupAssigned.has(key)) {
+                  next[id] = target
+                  groupAssigned.add(key)
+                } else {
+                  const orig = prev[id] && typeof prev[id].col === 'number' ? prev[id] : seededPositionsRef.current[id] ?? { col: 0, row: 0 }
+                  next[id] = orig
+                  groupAssigned.add(`${orig.col},${orig.row}`)
+                }
+              })
+
+              return next
             })
-            const freeCell = findFreeCell(targetCell, occupied, currentMetrics)
-            return { ...prev, [icon.id]: freeCell }
-          })
+          } else {
+            // Click without drag on a selected icon: reduce selection to this icon
+            setSelectedIcons(new Set([icon.id]))
+          }
+
+          groupDragStart.current = null
+          setDraggingGroupPixels(null)
+          cleanupGroupListeners()
         }
-        dragStart.current = null
-        setDraggingPixel(null)
-        cleanupDragListeners()
-      }
 
-      const onMove = (me: PointerEvent) => {
-        if (!dragStart.current || me.pointerId !== dragStart.current.pointerId) return
-        lastPointer.current = { x: me.clientX, y: me.clientY }
-        const dx = me.clientX - dragStart.current.mx
-        const dy = me.clientY - dragStart.current.my
-        if (Math.abs(dx) < 4 && Math.abs(dy) < 4) return
-        setDraggingPixel({ id: icon.id, x: Math.max(0, dragStart.current.ix + dx), y: Math.max(0, dragStart.current.iy + dy) })
-      }
+        const onGroupMove = (me: PointerEvent) => {
+          if (!groupDragStart.current || me.pointerId !== groupDragStart.current.pointerId) return
+          lastPointer.current = { x: me.clientX, y: me.clientY }
+          const dx = me.clientX - groupDragStart.current.mx
+          const dy = me.clientY - groupDragStart.current.my
+          if (Math.abs(dx) < 4 && Math.abs(dy) < 4) return
+          const newPixels: Record<string, { x: number; y: number }> = {}
+          Object.entries(groupDragStart.current.pixels).forEach(([id, p]) => {
+            newPixels[id] = { x: Math.max(0, p.x + dx), y: Math.max(0, p.y + dy) }
+          })
+          setDraggingGroupPixels(newPixels)
+        }
 
-      const onUp = (me: PointerEvent) => {
-        if (!dragStart.current || me.pointerId !== dragStart.current.pointerId) return
-        finalizeDrag(me.clientX, me.clientY)
-      }
+        const onGroupUp = (me: PointerEvent) => {
+          if (!groupDragStart.current || me.pointerId !== groupDragStart.current.pointerId) return
+          finalizeGroupDrag(me.clientX, me.clientY)
+        }
 
-      const onCancel = (me: PointerEvent) => {
-        if (!dragStart.current || me.pointerId !== dragStart.current.pointerId) return
-        finalizeDrag(me.clientX, me.clientY)
-      }
+        const onGroupCancel = (me: PointerEvent) => {
+          if (!groupDragStart.current || me.pointerId !== groupDragStart.current.pointerId) return
+          finalizeGroupDrag(me.clientX, me.clientY)
+        }
 
-      const onWindowBlur = () => {
-        const fallback = lastPointer.current ?? { x: e.clientX, y: e.clientY }
-        finalizeDrag(fallback.x, fallback.y)
-      }
+        const onGroupBlur = () => {
+          const fallback = lastPointer.current ?? { x: e.clientX, y: e.clientY }
+          finalizeGroupDrag(fallback.x, fallback.y)
+        }
 
-      window.addEventListener('pointermove', onMove)
-      window.addEventListener('pointerup', onUp)
-      window.addEventListener('pointercancel', onCancel)
-      window.addEventListener('blur', onWindowBlur)
+        window.addEventListener('pointermove', onGroupMove)
+        window.addEventListener('pointerup', onGroupUp)
+        window.addEventListener('pointercancel', onGroupCancel)
+        window.addEventListener('blur', onGroupBlur)
+
+      } else {
+        // Solo drag
+        const storedPos = iconPositions[icon.id]
+        const gridPos = (storedPos && typeof storedPos.col === 'number')
+          ? storedPos
+          : (seededPositionsRef.current[icon.id] ?? { col: 0, row: 0 })
+        const pixel = gridToPixel(gridPos.col, gridPos.row, m)
+
+        dragStart.current = { mx: e.clientX, my: e.clientY, ix: pixel.x, iy: pixel.y, iconId: icon.id, pointerId: e.pointerId }
+        lastPointer.current = { x: e.clientX, y: e.clientY }
+
+        const cleanupDragListeners = () => {
+          window.removeEventListener('pointermove', onMove)
+          window.removeEventListener('pointerup', onUp)
+          window.removeEventListener('pointercancel', onCancel)
+          window.removeEventListener('blur', onWindowBlur)
+          if (sourceEl.hasPointerCapture(e.pointerId)) {
+            try { sourceEl.releasePointerCapture(e.pointerId) } catch { /* no-op */ }
+          }
+        }
+
+        const finalizeDrag = (clientX: number, clientY: number) => {
+          if (!dragStart.current) { cleanupDragListeners(); setDraggingPixel(null); return }
+          const dx = clientX - dragStart.current.mx
+          const dy = clientY - dragStart.current.my
+          const didDrag = Math.abs(dx) >= 4 || Math.abs(dy) >= 4
+          if (didDrag) {
+            const rawX = Math.max(0, dragStart.current.ix + dx)
+            const rawY = Math.max(0, dragStart.current.iy + dy)
+            const currentMetrics = metricsRef.current
+            const targetCell = clampToGrid(pixelToGrid(rawX, rawY, currentMetrics), currentMetrics)
+            const originalCell = clampToGrid(pixelToGrid(dragStart.current.ix, dragStart.current.iy, currentMetrics), currentMetrics)
+            setIconPositions((prev) => {
+              const occupied = new Set<string>()
+              bureauIconsRef.current.forEach((ic) => {
+                if (ic.id === icon.id) return
+                const pos = prev[ic.id] && typeof prev[ic.id].col === 'number' ? prev[ic.id] : seededPositionsRef.current[ic.id] ?? { col: 0, row: 0 }
+                occupied.add(`${pos.col},${pos.row}`)
+              })
+              const dest = occupied.has(`${targetCell.col},${targetCell.row}`) ? originalCell : targetCell
+              return { ...prev, [icon.id]: dest }
+            })
+          }
+          dragStart.current = null
+          setDraggingPixel(null)
+          cleanupDragListeners()
+        }
+
+        const onMove = (me: PointerEvent) => {
+          if (!dragStart.current || me.pointerId !== dragStart.current.pointerId) return
+          lastPointer.current = { x: me.clientX, y: me.clientY }
+          const dx = me.clientX - dragStart.current.mx
+          const dy = me.clientY - dragStart.current.my
+          if (Math.abs(dx) < 4 && Math.abs(dy) < 4) return
+          setDraggingPixel({ id: icon.id, x: Math.max(0, dragStart.current.ix + dx), y: Math.max(0, dragStart.current.iy + dy) })
+        }
+
+        const onUp = (me: PointerEvent) => {
+          if (!dragStart.current || me.pointerId !== dragStart.current.pointerId) return
+          finalizeDrag(me.clientX, me.clientY)
+        }
+
+        const onCancel = (me: PointerEvent) => {
+          if (!dragStart.current || me.pointerId !== dragStart.current.pointerId) return
+          finalizeDrag(me.clientX, me.clientY)
+        }
+
+        const onWindowBlur = () => {
+          const fallback = lastPointer.current ?? { x: e.clientX, y: e.clientY }
+          finalizeDrag(fallback.x, fallback.y)
+        }
+
+        window.addEventListener('pointermove', onMove)
+        window.addEventListener('pointerup', onUp)
+        window.addEventListener('pointercancel', onCancel)
+        window.addEventListener('blur', onWindowBlur)
+      }
     },
     [iconPositions, setIconPositions]
   )
@@ -327,6 +462,7 @@ export function Desktop() {
   const handleIconClick = useCallback(
     (e: React.MouseEvent, icon: FsNode) => {
       e.stopPropagation()
+      if (e.ctrlKey || e.metaKey) return
       const now = Date.now()
       const last = lastClick.current
       if (last && last.id === icon.id && now - last.time < 500) {
@@ -343,11 +479,55 @@ export function Desktop() {
   const handleIconContextMenu = useCallback((e: React.MouseEvent, icon: FsNode) => {
     e.preventDefault()
     e.stopPropagation()
-    setSelectedIcon(icon.id)
+    if (!selectedIconsRef.current.has(icon.id)) {
+      setSelectedIcons(new Set([icon.id]))
+    }
     setContextMenu({ x: e.clientX, y: e.clientY, nodeId: icon.id })
   }, [])
 
-  const handleDesktopClick = useCallback(() => setSelectedIcon(null), [])
+  const handleDesktopPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return
+
+    const startX = e.clientX
+    const startY = e.clientY
+    let didDrag = false
+
+    const onMove = (me: PointerEvent) => {
+      const dx = me.clientX - startX
+      const dy = me.clientY - startY
+      if (!didDrag && Math.abs(dx) < 4 && Math.abs(dy) < 4) return
+      didDrag = true
+
+      setSelectionRect({ startX, startY, currentX: me.clientX, currentY: me.clientY })
+
+      const rect = normalizeRect(startX, startY, me.clientX, me.clientY)
+      const m = metricsRef.current
+      const selected = new Set<string>()
+      bureauIconsRef.current.forEach(icon => {
+        const storedPos = iconPositionsRef.current[icon.id]
+        const gridPos = (storedPos && typeof storedPos.col === 'number')
+          ? storedPos
+          : (seededPositionsRef.current[icon.id] ?? { col: 0, row: 0 })
+        const pixel = gridToPixel(gridPos.col, gridPos.row, m)
+        if (rectsIntersect(pixel.x, pixel.y, m.cellW, m.cellH, rect.x, rect.y, rect.w, rect.h)) {
+          selected.add(icon.id)
+        }
+      })
+      setSelectedIcons(selected)
+    }
+
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+      setSelectionRect(null)
+      if (!didDrag) {
+        setSelectedIcons(new Set())
+      }
+    }
+
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+  }, [])
 
   const handleDesktopContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -359,6 +539,22 @@ export function Desktop() {
   const buildIconContextItems = (nodeId: string): ContextMenuItem[] => {
     const node = fsStore.nodes[nodeId]
     if (!node) return []
+
+    const isMultiSelection = selectedIcons.size > 1 && selectedIcons.has(nodeId)
+
+    if (isMultiSelection) {
+      return [
+        {
+          label: `Supprimer la sélection (${selectedIcons.size} éléments)`,
+          onClick: () => {
+            const toDelete = new Set(selectedIcons)
+            toDelete.forEach(id => fsStore.remove(id))
+            setSelectedIcons(new Set())
+          },
+        },
+      ]
+    }
+
     return [
       { label: 'Ouvrir', onClick: () => { play('open'); openFile(nodeId) } },
       { separator: true },
@@ -436,7 +632,7 @@ export function Desktop() {
     <div
       className={styles.desktop}
       style={{ backgroundColor: selectedTheme.backgroundColor, backgroundImage: selectedTheme.backgroundImage }}
-      onClick={handleDesktopClick}
+      onPointerDown={handleDesktopPointerDown}
       onContextMenu={handleDesktopContextMenu}
     >
       <div
@@ -444,15 +640,20 @@ export function Desktop() {
         style={{ '--cell-w': `${metrics.cellW}px`, '--cell-h': `${metrics.cellH}px` } as React.CSSProperties}
       >
         {!gridError && bureauIcons.map((icon) => {
-          const isDragging = draggingPixel?.id === icon.id
+          const isSoloDragging = draggingPixel?.id === icon.id
+          const groupPixel = draggingGroupPixels?.[icon.id]
+          const isDragging = isSoloDragging || groupPixel !== undefined
           const iconImage = getIconImage(icon)
           const label = getIconLabel(icon)
           let left: number
           let top: number
 
-          if (isDragging && draggingPixel) {
+          if (isSoloDragging && draggingPixel) {
             left = draggingPixel.x
             top = draggingPixel.y
+          } else if (groupPixel) {
+            left = groupPixel.x
+            top = groupPixel.y
           } else {
             const pos = getGridPos(icon.id)
             const pixel = gridToPixel(pos.col, pos.row, metrics)
@@ -463,7 +664,7 @@ export function Desktop() {
           return (
             <div
               key={icon.id}
-              className={`${styles.icon} ${selectedIcon === icon.id ? styles.selected : ''} ${isDragging ? styles.dragging : ''}`}
+              className={`${styles.icon} ${selectedIcons.has(icon.id) ? styles.selected : ''} ${isDragging ? styles.dragging : ''}`}
               style={{ left, top, width: metrics.cellW, height: metrics.cellH }}
               onPointerDown={(e) => handleIconPointerDown(e, icon)}
               onClick={(e) => handleIconClick(e, icon)}
@@ -476,10 +677,19 @@ export function Desktop() {
             </div>
           )
         })}
+
+        {selectionRect && (() => {
+          const r = normalizeRect(selectionRect.startX, selectionRect.startY, selectionRect.currentX, selectionRect.currentY)
+          return <div className={styles.selectionRect} style={{ left: r.x, top: r.y, width: r.w, height: r.h }} />
+        })()}
       </div>
 
       {gridError && (
-        <div className={styles.tooSmallOverlay} onClick={() => setGridError(null)}>
+        <div
+          className={styles.tooSmallOverlay}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => setGridError(null)}
+        >
           <div className={styles.tooSmallDialog} onClick={(e) => e.stopPropagation()} role="alert" aria-live="assertive">
             <div className={styles.tooSmallTitleBar}>Espace insuffisant</div>
             <div className={styles.tooSmallBody}>

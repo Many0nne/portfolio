@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Howl } from 'howler'
+import { Howl, Howler } from 'howler'
 import { playlist } from '../../data/playlist'
+import { useAudioStore } from '../../store/audioStore'
 import styles from './MediaPlayer.module.css'
 
 function formatTime(s: number): string {
@@ -17,9 +18,21 @@ export function MediaPlayer({ fileId: _fileId }: { fileId?: string } = {}) {
   const [duration, setDuration] = useState(0)
   const [loadError, setLoadError] = useState(false)
 
+  const soundEnabled = useAudioStore((s) => s.soundEnabled)
+  const volume = useAudioStore((s) => s.volume)
+  const setVolume = useAudioStore((s) => s.setVolume)
+
   const howlRef = useRef<Howl | null>(null)
   const rafRef = useRef<number>(0)
   const autoPlayRef = useRef(false)
+
+  useEffect(() => {
+    Howler.mute(!soundEnabled)
+  }, [soundEnabled])
+
+  useEffect(() => {
+    Howler.volume(volume)
+  }, [volume])
 
   const track = playlist[trackIndex]
 
@@ -102,6 +115,10 @@ export function MediaPlayer({ fileId: _fileId }: { fileId?: string } = {}) {
     setTrackIndex((i) => (i + 1) % playlist.length)
   }, [isPlaying])
 
+  const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setVolume(parseFloat(e.target.value))
+  }
+
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const t = parseFloat(e.target.value)
     howlRef.current?.seek(t)
@@ -176,6 +193,21 @@ export function MediaPlayer({ fileId: _fileId }: { fileId?: string } = {}) {
             ⏭
           </button>
         </div>
+      </div>
+
+      {/* Volume */}
+      <div className={styles.volumeRow}>
+        <span className={styles.volumeLabel}>VOL</span>
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={volume}
+          onChange={handleVolume}
+          className={styles.volumeSlider}
+          aria-label="Volume"
+        />
       </div>
 
       {/* Playlist indicator */}

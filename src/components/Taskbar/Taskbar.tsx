@@ -3,14 +3,15 @@ import styles from './Taskbar.module.css'
 import { TaskbarClock } from './TaskbarClock'
 import { StartMenu } from './StartMenu'
 import { useWindowStore } from '../../store/windowStore'
-import { useLocalStorage } from '../../hooks/useLocalStorage'
+import { useAudioStore } from '../../store/audioStore'
 import { AppIcon } from '../shared/AppIcon'
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
 import type { WindowState } from '../../types'
 
 export function Taskbar() {
   const [startOpen, setStartOpen] = useState(false)
-  const [soundEnabled, setSoundEnabled] = useLocalStorage('win95-sound', true)
+  const soundEnabled = useAudioStore((s) => s.soundEnabled)
+  const setSoundEnabled = useAudioStore((s) => s.setSoundEnabled)
   const { windows, focusWindow, minimizeWindow, restoreWindow, activeWindowId } = useWindowStore()
 
   const toggleStart = useCallback(() => setStartOpen((v) => !v), [])
@@ -67,7 +68,7 @@ export function Taskbar() {
 
         <TaskbarClock
           soundEnabled={soundEnabled}
-          onToggleSound={() => setSoundEnabled((v) => !v)}
+          onToggleSound={() => setSoundEnabled(!soundEnabled)}
         />
       </div>
     </>

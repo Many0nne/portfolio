@@ -37,8 +37,13 @@ export const useWindowStore = create<Store>((set, get) => ({
     if (!def) return null
     const { windows } = get()
 
-    if (!def.multiInstance) {
-      const existing = windows.find((w) => w.appId === appId)
+    const effectiveFileId = opts.fileId ?? (opts.props?.fileId as string | undefined)
+
+    if (!def.multiInstance || effectiveFileId) {
+      const existing = windows.find((w) =>
+        w.appId === appId &&
+        (effectiveFileId ? w.props.fileId === effectiveFileId : !w.props.fileId)
+      )
       if (existing) {
         if (existing.state === 'minimized') {
           set((s) => ({

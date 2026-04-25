@@ -48,7 +48,7 @@ export function resolveAssociation(node: FsNode): Association | null {
   if (app === 'notepad') return { app, props: { fileId: node.id } }
   if (app === 'paint') return { app, props: { fileId: node.id } }
   if (app === 'media-player') return { app, props: { fileId: node.id } }
-  if (app === 'project-viewer') return { app, props: { fileId: node.id } }
+  if (app === 'project-viewer') return { app, props: { projectId: node.content } }
 
   return { app, props: { fileId: node.id } }
 }

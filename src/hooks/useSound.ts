@@ -1,13 +1,11 @@
 import { useCallback } from 'react'
+import { useAudioStore } from '../store/audioStore'
 
 type SoundName = 'open' | 'close' | 'error' | 'notify' | 'startup' | 'click'
 
-// Simple sound hook — plays audio files from /sounds/ if they exist
-// Silently fails if files are missing or audio is blocked
 export function useSound() {
   const play = useCallback((name: SoundName) => {
-    const muted = localStorage.getItem('win95-sound') === 'false'
-    if (muted) return
+    if (!useAudioStore.getState().soundEnabled) return
 
     const audio = new Audio(`/sounds/${name}.wav`)
     audio.volume = 0.4

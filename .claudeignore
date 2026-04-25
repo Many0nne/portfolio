@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Generated / lock files
+*.lock
+pnpm-lock.yaml
+package-lock.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large public assets (read via URL, not as source)
+public/img/
+public/music/
+public/sounds/
+public/icons/

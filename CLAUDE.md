@@ -1,63 +1,39 @@
-# CLAUDE.md
+# Project: Win95 Portfolio
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Stack
+- Language: TypeScript (React 19)
+- Framework: Vite SPA
+- State: Zustand (in-memory + localStorage via `persist`)
+- Styling: CSS Modules + 98.css
+- Package manager: pnpm
 
-## Commands
+## Hard rules
+- Never auto-commit
+- Always use `pnpm`, never `npm`
+- No test framework — do not add one without asking
+- All UI labels and user-visible text must be in **French**
+- CSS Modules only — never inline styles, never global class overrides on 98.css primitives
 
-```bash
-pnpm dev          # Start dev server (Vite HMR)
-pnpm build        # tsc -b && vite build
-pnpm lint         # ESLint with TypeScript + React rules
-pnpm preview      # Preview production build
-```
+## How to run
+- Dev: `pnpm dev`
+- Build: `pnpm build` (runs `tsc -b && vite build`)
+- Lint: `pnpm lint`
+- Preview: `pnpm preview`
 
-No test framework is configured.
+## Core architecture (one-liner per domain)
+- **Window system** — `src/store/windowStore.ts`: Zustand store, `openWindow(appId, opts)`, `WindowState = 'normal' | 'minimized' | 'maximized'`, system lifecycle in same store
+- **Virtual FS** — `src/fs/`: Zustand + localStorage persist, flat `nodes` map with `parentId` references, soft-delete to `RECYCLED_ID`
+- **App registry** — `src/apps/registry.ts` + `src/apps/types.ts`: `APPS` record, each entry is an `AppDefinition` with lazy component
+- **Desktop** — `src/components/Desktop/Desktop.tsx`: icon grid, drag-snap, themes, ContextMenu
+- **Shared UI primitives** — `src/components/shared/`: ContextMenu, MenuBar, DialogBox, AppIcon, ProgressBar
+- **Data** — `src/data/`: static only, no API calls (`projects.ts`, `mails.ts`, `playlist.ts`, `icons.ts`)
 
-## Architecture
+## Available skills
+Load the relevant skill before reading source files — it tells you exactly which files matter.
 
-This is a **Windows 95-themed interactive portfolio** — a fully simulated desktop environment running as a browser SPA. React 19 + TypeScript + Vite + Zustand + 98.css.
-
-### Core abstraction layers
-
-**Window system** (`src/store/windowStore.ts`): Zustand store tracking all open windows. `openWindow(appId, options)` creates new window instances. Window state uses `state: 'normal' | 'minimized' | 'maximized'` (not booleans). Actions: `openWindow`, `closeWindow`, `focusWindow`, `minimizeWindow`, `maximizeWindow`, `restoreWindow`, `moveWindow`, `resizeWindow`. System lifecycle (`boot`, `shutdown`, `restart`) is also in this store via `systemState: 'booting' | 'desktop' | 'shuttingDown'`.
-
-**Virtual file system** (`src/fs/`):
-- `fsStore.ts` — Zustand store with `persist` middleware (localStorage). Nodes have `parentId` references forming a tree.
-- `seed.ts` — Initial FS tree seeded on first load (C:\, Users\Terry\, system folders, embedded text content).
-- `associations.ts` — Maps file extensions to app IDs.
-- Recycle Bin is a soft-delete: nodes are moved to `RECYCLED_ID`, hard-deleted on second removal.
-
-**App registry** (`src/apps/registry.ts`): Single source of truth for all apps. Each `AppDefinition` declares `name`, `iconKey`, `component` (lazy-loaded via `React.lazy`), `defaultSize`, `resizable`, `minimizable`, `maximizable`, `multiInstance`, `isDialog?`. `App.tsx` renders `APPS[win.appId].component` directly — no switch statement needed.
-
-**Desktop grid** (`src/components/Desktop/`): Icon positions are stored in localStorage separately from the FS. The grid is computed from viewport dimensions; icons snap to cells and the store prevents overlaps.
-
-### State persistence strategy
-
-| What             | How                                   |
-| ---------------- | ------------------------------------- |
-| Open windows     | Zustand in-memory only                |
-| File system tree | Zustand + `persist` (localStorage)    |
-| Icon positions   | `useLocalStorage` hook (localStorage) |
-| Desktop theme    | `useLocalStorage` hook (localStorage) |
-
-`localStorage` is cleared on boot (see recent commit) to reset stale state.
-
-### Adding a new app
-
-1. Add the app ID to the `AppId` union in `src/apps/types.ts`.
-2. Register it in `src/apps/registry.ts` with `component` (lazy import), icon, size, and flags.
-3. Create the component under `src/components/apps/`.
-4. Optionally add a desktop icon entry referencing the app ID.
-
-No other files need modification.
-
-### UI conventions
-
-- **CSS Modules** for all component styles (`.module.css`).
-- **98.css** provides Windows 95 primitives (buttons, title bars, inputs) — avoid overriding its class names directly.
-- All UI labels and content are in **French**.
-- Sound effects via `useSound()` hook (`src/hooks/useSound.ts`); failures are silently swallowed.
-
-### Data files (`src/data/`)
-
-Static data only — no API calls. `projects.ts` holds the full portfolio (20+ projects with title, description, stack, links). `mails.ts`, `playlist.ts`, `icons.ts` are similarly static.
+- `window-system` — window lifecycle, z-index, system state, openWindow/openFile API
+- `virtual-fs` — FS node structure, store API, seed tree, path resolution, associations
+- `app-registry` — adding/modifying apps, AppDefinition fields, lazy loading pattern
+- `desktop` — icon grid, drag-snap, themes, localStorage keys, desktop context menu
+- `ui-conventions` — 98.css usage, CSS Modules patterns, shared primitives, sound hook
+- `data-layer` — static data shape (projects, mails, playlist, icons), how to add/edit entries

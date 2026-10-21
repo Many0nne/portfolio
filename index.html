@@ -2,13 +2,115 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Portfolio de Terry BARILLON — Développeur Full-Stack TypeScript · React · Node.js" />
-    <title>Terry BARILLON — Portfolio Windows 95</title>
+    <title>Terry BARILLON — Développeur Full-Stack TypeScript · Portfolio Windows 95</title>
+    <meta name="description" content="Portfolio interactif de Terry BARILLON, développeur Full-Stack TypeScript, React, Vue.js et Node.js. Découvrez mes projets, mon CV et mes compétences dans un bureau Windows 95." />
+    <meta name="author" content="Terry BARILLON" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="theme-color" content="#008080" />
+    <link rel="canonical" href="https://terrybarillon.netlify.app/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:site_name" content="Terry BARILLON — Portfolio" />
+    <meta property="og:url" content="https://terrybarillon.netlify.app/" />
+    <meta property="og:title" content="Terry BARILLON — Développeur Full-Stack TypeScript" />
+    <meta property="og:description" content="Portfolio interactif façon Windows 95 : projets, CV et compétences d'un développeur Full-Stack TypeScript, React, Vue.js et Node.js." />
+    <meta property="og:image" content="https://terrybarillon.netlify.app/img/preview.png" />
+    <meta property="og:image:width" content="1917" />
+    <meta property="og:image:height" content="942" />
+    <meta property="og:image:alt" content="Aperçu du portfolio : un bureau Windows 95 avec ses icônes et sa barre des tâches" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Terry BARILLON — Développeur Full-Stack TypeScript" />
+    <meta name="twitter:description" content="Portfolio interactif façon Windows 95 : projets, CV et compétences d'un développeur Full-Stack TypeScript, React, Vue.js et Node.js." />
+    <meta name="twitter:image" content="https://terrybarillon.netlify.app/img/preview.png" />
+
+    <!-- Données structurées (schema.org) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://terrybarillon.netlify.app/#website",
+            "url": "https://terrybarillon.netlify.app/",
+            "name": "Terry BARILLON — Portfolio",
+            "inLanguage": "fr-FR",
+            "author": { "@id": "https://terrybarillon.netlify.app/#person" }
+          },
+          {
+            "@type": "Person",
+            "@id": "https://terrybarillon.netlify.app/#person",
+            "name": "Terry BARILLON",
+            "url": "https://terrybarillon.netlify.app/",
+            "image": "https://terrybarillon.netlify.app/img/preview.png",
+            "jobTitle": "Développeur Full-Stack",
+            "worksFor": { "@type": "Organization", "name": "Akajoule" },
+            "sameAs": ["https://github.com/Many0nne"],
+            "knowsAbout": [
+              "TypeScript", "React", "Vue.js", "Nuxt", "Node.js", "Python", "Django",
+              "PostgreSQL", "Tailwind CSS", "Docker", "CI/CD", "Figma"
+            ]
+          },
+          {
+            "@type": "SoftwareSourceCode",
+            "name": "TS-Mock-API",
+            "description": "Génère une API REST complète (CRUD, pagination, Swagger) à partir d'interfaces TypeScript.",
+            "codeRepository": "https://github.com/Many0nne/TS-Mock-API",
+            "programmingLanguage": "TypeScript",
+            "author": { "@id": "https://terrybarillon.netlify.app/#person" }
+          },
+          {
+            "@type": "SoftwareSourceCode",
+            "name": "GracefulErrors",
+            "description": "Moteur d'erreurs TypeScript pour des expériences utilisateur cohérentes, avec intégrations React et Vue.",
+            "codeRepository": "https://github.com/Many0nne/GracefulErrors",
+            "programmingLanguage": "TypeScript",
+            "author": { "@id": "https://terrybarillon.netlify.app/#person" }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <main>
+        <h1>Terry BARILLON — Développeur Full-Stack TypeScript</h1>
+        <p>
+          Ce portfolio interactif simule un bureau Windows 95 et nécessite JavaScript.
+          Voici l'essentiel de son contenu.
+        </p>
+        <h2>Expérience</h2>
+        <p>
+          Développeur Full-Stack chez Akajoule : outil web d'aide à la réduction des émissions
+          de gaz à effet de serre (Nuxt, Django, PostgreSQL) et outil de création de notes
+          d'opportunité pour les réseaux de chaleur (maquettes Figma, architecture frontend).
+        </p>
+        <h2>Projets</h2>
+        <ul>
+          <li>
+            <a href="https://github.com/Many0nne/TS-Mock-API">TS-Mock-API</a> — génère une API REST
+            complète à partir d'interfaces TypeScript (CRUD, pagination, Swagger).
+          </li>
+          <li>
+            <a href="https://github.com/Many0nne/GracefulErrors">GracefulErrors</a> — moteur
+            d'erreurs TypeScript avec intégrations React, Vue, Axios et Sentry.
+          </li>
+        </ul>
+        <h2>Compétences</h2>
+        <p>
+          TypeScript, React, Vue.js, Nuxt, Node.js, Python, Django, PostgreSQL, Tailwind CSS,
+          Docker, Git, CI/CD, Figma.
+        </p>
+        <h2>Contact</h2>
+        <p><a href="https://github.com/Many0nne">github.com/Many0nne</a></p>
+      </main>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
